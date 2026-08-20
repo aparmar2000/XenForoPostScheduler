@@ -7,7 +7,9 @@ import java.util.UUID;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import aparmar2000.xenforoposter.security.SecureString;
 import lombok.Builder;
+import lombok.ToString;
 import lombok.Value;
 
 @Value
@@ -17,8 +19,8 @@ public class ForumProfile {
     @NotNull String name;
     @NotNull String baseUrl;
     @Nullable String username;
-    @Nullable String password;
-    @Nullable Map<String, String> sessionCookies;
+    @Nullable @ToString.Exclude SecureString password;
+    @Nullable @ToString.Exclude Map<String, SecureString> sessionCookies;
     @Nullable String customUserAgent;
 
     public String getDomain() {
