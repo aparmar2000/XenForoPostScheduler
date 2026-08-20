@@ -9,11 +9,13 @@ import aparmar2000.xenforoposter.model.ScrapedThreadData;
 import aparmar2000.xenforoposter.model.ThreadMetadata;
 import aparmar2000.xenforoposter.model.ThreadPost;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 @Value
+@EqualsAndHashCode(callSuper = false)
 @Builder(toBuilder = true)
-public class PostGapCondition implements PostCondition {
+public class PostGapCondition extends PostCondition {
     @NotNull @Builder.Default String id = UUID.randomUUID().toString();
     int minPostsSinceUser;
     int baselineReplyCount;
@@ -31,7 +33,7 @@ public class PostGapCondition implements PostCondition {
                     minPostsSinceUser, baselineReplyCount);
         }
         return String.format("Requires at least %d reply(ies) from other users since your last post",
-                minPostsSinceUser);
+                    minPostsSinceUser);
     }
 
     @Override
@@ -40,39 +42,26 @@ public class PostGapCondition implements PostCondition {
     }
 
     @Override
-    public @NotNull ConditionResult evaluate(@NotNull EvaluationContext context) {
-        ThreadMetadata metadata = context.getThreadMetadata();
-        if (metadata == null) {
-            return ConditionResult.fail("Thread metadata is not available for post gap evaluation");
-        }
+    protected @NotNull ConditionResult innerEvaluate(@NotNull EvaluationContext context) throws ConditionEvaluationException {
+        ThreadMetadata metadata = getThreadMetadataOrFail(context);
 
         if (useBaselineCount) {
             int newReplies = metadata.getReplyCount() - baselineReplyCount;
             if (newReplies < minPostsSinceUser) {
-                return ConditionResult.fail(String.format(
+                fail(String.format(
                         "Insufficient new replies: %d received since baseline (%d total now), requires %d",
                         Math.max(0, newReplies), metadata.getReplyCount(), minPostsSinceUser));
             }
-            return ConditionResult.pass(String.format("%d new replies received (required %d)", newReplies, minPostsSinceUser));
+            return pass(String.format("%d new replies received (required %d)", newReplies, minPostsSinceUser));
         }
 
         // Count posts by others since last post by user
-        String username = context.getForumProfile().getUsername();
-        if (username == null || username.trim().isEmpty()) {
-            return ConditionResult.fail("Forum profile username is not configured for user post gap tracking");
-        }
+        String username = getUsernameOrFail(context);
 
-        ScrapedThreadData threadData = context.getThreadData();
-        if (threadData == null) {
-            return ConditionResult.fail("Thread data is not available for post gap evaluation");
-        }
+        ScrapedThreadData threadData = getThreadDataOrFail(context);
 
         int totalPages = threadData.getTotalPages();
-        if (!threadData.hasPage(totalPages)) {
-            return ConditionResult.failWithPageRequest(
-                    String.format("Requires latest page (%d) to evaluate post gap", totalPages),
-                    totalPages);
-        }
+        requireLatestPageLoadedOrFail(threadData);
 
         int countSinceUser = 0;
         boolean userFound = false;
@@ -84,9 +73,7 @@ public class PostGapCondition implements PostCondition {
                     // Already enough posts accumulated after user or end of thread
                     break;
                 }
-                return ConditionResult.failWithPageRequest(
-                        String.format("Requires page %d to determine post gap", p),
-                        p);
+                requirePageLoadedOrFail(threadData, p);
             }
 
             List<ThreadPost> pagePosts = threadData.getPostsOnPage(p);
@@ -107,12 +94,12 @@ public class PostGapCondition implements PostCondition {
         int effectiveGap = userFound ? countSinceUser : Math.max(countSinceUser, minPostsSinceUser);
 
         if (effectiveGap < minPostsSinceUser) {
-            return ConditionResult.fail(String.format(
+            fail(String.format(
                     "Post gap not met: only %d post(s) since your last post (%s), requires %d",
                     effectiveGap, username, minPostsSinceUser));
         }
 
-        return ConditionResult.pass(String.format("Post gap satisfied (%d >= %d posts since %s)",
+        return pass(String.format("Post gap satisfied (%d >= %d posts since %s)",
                 effectiveGap, minPostsSinceUser, username));
     }
 }

@@ -17,12 +17,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Singular;
 import lombok.Value;
 
 @Value
+@EqualsAndHashCode(callSuper = false)
 @Builder(toBuilder = true)
-public class DayOfWeekCondition implements PostCondition {
+public class DayOfWeekCondition extends PostCondition {
     private static final Set<DayOfWeek> WEEKDAYS = EnumSet.of(
             DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY);
     private static final Set<DayOfWeek> WEEKENDS = EnumSet.of(
@@ -64,9 +66,9 @@ public class DayOfWeekCondition implements PostCondition {
     }
 
     @Override
-    public @NotNull ConditionResult evaluate(@NotNull EvaluationContext context) {
+    protected @NotNull ConditionResult innerEvaluate(@NotNull EvaluationContext context) throws ConditionEvaluationException {
         if (allowedDays == null || allowedDays.isEmpty()) {
-            return ConditionResult.fail("No allowed days configured for Day of Week condition.");
+            fail("No allowed days configured for Day of Week condition.");
         }
 
         ZoneId zone = zoneId != null ? zoneId : ZoneId.systemDefault();
@@ -75,7 +77,7 @@ public class DayOfWeekCondition implements PostCondition {
         DayOfWeek currentDay = zdt.getDayOfWeek();
 
         if (allowedDays.contains(currentDay)) {
-            return ConditionResult.pass(String.format("Current day (%s) is an allowed day of the week",
+            return pass(String.format("Current day (%s) is an allowed day of the week",
                     currentDay.getDisplayName(TextStyle.FULL, Locale.ENGLISH)));
         }
 
@@ -93,8 +95,11 @@ public class DayOfWeekCondition implements PostCondition {
                 currentDay.getDisplayName(TextStyle.FULL, Locale.ENGLISH),
                 getDescription());
 
-        return nextEligibleInstant != null
-                ? ConditionResult.fail(message, nextEligibleInstant)
-                : ConditionResult.fail(message);
+        if (nextEligibleInstant != null) {
+            fail(message, nextEligibleInstant);
+        } else {
+            fail(message);
+        }
+        return pass(message); // Unreachable due to fail()
     }
 }

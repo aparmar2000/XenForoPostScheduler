@@ -8,12 +8,14 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Singular;
 import lombok.Value;
 
 @Value
+@EqualsAndHashCode(callSuper = false)
 @Builder(toBuilder = true)
-public class CompositeCondition implements PostCondition {
+public class CompositeCondition extends PostCondition {
     public enum Operator {
         AND,
         OR
@@ -40,9 +42,9 @@ public class CompositeCondition implements PostCondition {
     }
 
     @Override
-    public @NotNull ConditionResult evaluate(@NotNull EvaluationContext context) {
+    protected @NotNull ConditionResult innerEvaluate(@NotNull EvaluationContext context) throws ConditionEvaluationException {
         if (conditions.isEmpty()) {
-            return ConditionResult.pass("No sub-conditions configured");
+            return pass("No sub-conditions configured");
         }
 
         List<String> failedReasons = new ArrayList<>();
@@ -54,7 +56,7 @@ public class CompositeCondition implements PostCondition {
             if (result.isSatisfied()) {
                 passedMessages.add(result.getMessage());
                 if (operator == Operator.OR) {
-                    return ConditionResult.pass("OR satisfied by: " + result.getMessage(), result.getExpiry());
+                    return pass("OR satisfied by: " + result.getMessage(), result.getExpiry());
                 }
             } else {
                 failedReasons.add(result.getMessage());
@@ -63,24 +65,25 @@ public class CompositeCondition implements PostCondition {
                 }
                 if (operator == Operator.AND) {
                     if (result.hasPageRequest()) {
-                        return ConditionResult.failWithPageRequest(
+                        failWithPageRequest(
                                 "AND failed on [" + condition.getDisplayName() + "]: " + result.getMessage(),
                                 result.getRequestedPage(),
                                 result.getExpiry());
                     }
-                    return ConditionResult.fail("AND failed on [" + condition.getDisplayName() + "]: " + result.getMessage(), result.getExpiry());
+                    fail("AND failed on [" + condition.getDisplayName() + "]: " + result.getMessage(), result.getExpiry());
                 }
             }
         }
 
         if (operator == Operator.AND) {
-            return ConditionResult.pass("All conditions passed: " + String.join("; ", passedMessages));
+            return pass("All conditions passed: " + String.join("; ", passedMessages));
         } else {
             String combinedReason = "None of the OR conditions were met: " + String.join("; ", failedReasons);
             if (firstPageRequest != null) {
-                return ConditionResult.failWithPageRequest(combinedReason, firstPageRequest);
+                failWithPageRequest(combinedReason, firstPageRequest);
             }
-            return ConditionResult.fail(combinedReason);
+            fail(combinedReason);
+            return pass("OK"); // Unreachable due to fail()
         }
     }
 }

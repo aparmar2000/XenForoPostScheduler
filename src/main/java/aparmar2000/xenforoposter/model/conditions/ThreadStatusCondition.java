@@ -6,11 +6,13 @@ import org.jetbrains.annotations.NotNull;
 
 import aparmar2000.xenforoposter.model.ThreadMetadata;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 @Value
+@EqualsAndHashCode(callSuper = false)
 @Builder(toBuilder = true)
-public class ThreadStatusCondition implements PostCondition {
+public class ThreadStatusCondition extends PostCondition {
     @NotNull @Builder.Default String id = UUID.randomUUID().toString();
     @Builder.Default boolean requireUnlocked = true;
     @Builder.Default boolean requireCanReply = true;
@@ -31,20 +33,17 @@ public class ThreadStatusCondition implements PostCondition {
     }
 
     @Override
-    public @NotNull ConditionResult evaluate(@NotNull EvaluationContext context) {
-        ThreadMetadata metadata = context.getThreadMetadata();
-        if (metadata == null) {
-            return ConditionResult.fail("Thread metadata is not available to verify thread status");
-        }
+    protected @NotNull ConditionResult innerEvaluate(@NotNull EvaluationContext context) throws ConditionEvaluationException {
+        ThreadMetadata metadata = getThreadMetadataOrFail(context);
 
         if (requireUnlocked && metadata.isLocked()) {
-            return ConditionResult.fail("Target thread is locked / closed to new replies");
+            fail("Target thread is locked / closed to new replies");
         }
 
         if (requireCanReply && !metadata.isCanReply()) {
-            return ConditionResult.fail("User does not have permission to reply or reply form is inaccessible");
+            fail("User does not have permission to reply or reply form is inaccessible");
         }
 
-        return ConditionResult.pass("Thread is open and writable");
+        return pass("Thread is open and writable");
     }
 }

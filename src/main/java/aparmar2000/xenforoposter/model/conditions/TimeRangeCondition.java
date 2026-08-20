@@ -12,11 +12,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 @Value
+@EqualsAndHashCode(callSuper = false)
 @Builder(toBuilder = true)
-public class TimeRangeCondition implements PostCondition {
+public class TimeRangeCondition extends PostCondition {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     @NotNull @Builder.Default String id = UUID.randomUUID().toString();
@@ -48,7 +50,7 @@ public class TimeRangeCondition implements PostCondition {
     }
 
     @Override
-    public @NotNull ConditionResult evaluate(@NotNull EvaluationContext context) {
+    protected @NotNull ConditionResult innerEvaluate(@NotNull EvaluationContext context) throws ConditionEvaluationException {
         ZoneId zone = zoneId != null ? zoneId : ZoneId.systemDefault();
         Instant currentInstant = context.getEvaluationTime();
         ZonedDateTime zdt = currentInstant.atZone(zone);
@@ -56,14 +58,14 @@ public class TimeRangeCondition implements PostCondition {
         LocalDate currentDate = zdt.toLocalDate();
 
         if (startTime.equals(endTime)) {
-            return ConditionResult.pass("24-hour time range allows execution at any time");
+            return pass("24-hour time range allows execution at any time");
         }
 
         boolean isNormalRange = startTime.isBefore(endTime);
 
         if (isNormalRange) {
             if (!currentTime.isBefore(startTime) && !currentTime.isAfter(endTime)) {
-                return ConditionResult.pass(String.format("Current time (%s) is within window [%s - %s]",
+                return pass(String.format("Current time (%s) is within window [%s - %s]",
                         TIME_FORMATTER.format(currentTime), TIME_FORMATTER.format(startTime), TIME_FORMATTER.format(endTime)));
             }
 
@@ -74,18 +76,19 @@ public class TimeRangeCondition implements PostCondition {
                 nextStart = currentDate.plusDays(1).atTime(startTime).atZone(zone).toInstant();
             }
 
-            return ConditionResult.fail(String.format("Current time (%s) is outside window [%s - %s]",
+            fail(String.format("Current time (%s) is outside window [%s - %s]",
                     TIME_FORMATTER.format(currentTime), TIME_FORMATTER.format(startTime), TIME_FORMATTER.format(endTime)), nextStart);
         } else {
             // Overnight range e.g. 22:00 to 06:00
             if (!currentTime.isBefore(startTime) || !currentTime.isAfter(endTime)) {
-                return ConditionResult.pass(String.format("Current time (%s) is within overnight window [%s - %s]",
+                return pass(String.format("Current time (%s) is within overnight window [%s - %s]",
                         TIME_FORMATTER.format(currentTime), TIME_FORMATTER.format(startTime), TIME_FORMATTER.format(endTime)));
             }
 
             Instant nextStart = currentDate.atTime(startTime).atZone(zone).toInstant();
-            return ConditionResult.fail(String.format("Current time (%s) is outside overnight window [%s - %s]",
+            fail(String.format("Current time (%s) is outside overnight window [%s - %s]",
                     TIME_FORMATTER.format(currentTime), TIME_FORMATTER.format(startTime), TIME_FORMATTER.format(endTime)), nextStart);
         }
+        return pass("OK"); // Unreachable due to fail()
     }
 }

@@ -10,11 +10,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 @Value
+@EqualsAndHashCode(callSuper = false)
 @Builder(toBuilder = true)
-public class DateRangeCondition implements PostCondition {
+public class DateRangeCondition extends PostCondition {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @NotNull @Builder.Default String id = UUID.randomUUID().toString();
@@ -48,23 +50,23 @@ public class DateRangeCondition implements PostCondition {
     }
 
     @Override
-    public @NotNull ConditionResult evaluate(@NotNull EvaluationContext context) {
+    protected @NotNull ConditionResult innerEvaluate(@NotNull EvaluationContext context) throws ConditionEvaluationException {
         ZoneId zone = zoneId != null ? zoneId : ZoneId.systemDefault();
         Instant currentInstant = context.getEvaluationTime();
         LocalDate currentDate = currentInstant.atZone(zone).toLocalDate();
 
         if (startDate != null && currentDate.isBefore(startDate)) {
             Instant startInstant = startDate.atStartOfDay(zone).toInstant();
-            return ConditionResult.fail(String.format("Waiting for start date: current date (%s) is before %s",
+            fail(String.format("Waiting for start date: current date (%s) is before %s",
                     DATE_FORMATTER.format(currentDate), DATE_FORMATTER.format(startDate)), startInstant);
         }
 
         if (endDate != null && currentDate.isAfter(endDate)) {
-            return ConditionResult.fail(String.format("Date range expired: current date (%s) is after %s",
+            fail(String.format("Date range expired: current date (%s) is after %s",
                     DATE_FORMATTER.format(currentDate), DATE_FORMATTER.format(endDate)));
         }
 
-        return ConditionResult.pass(String.format("Current date (%s) is within scheduled date range",
+        return pass(String.format("Current date (%s) is within scheduled date range",
                 DATE_FORMATTER.format(currentDate)));
     }
 }

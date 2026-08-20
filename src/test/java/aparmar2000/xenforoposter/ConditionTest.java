@@ -24,6 +24,7 @@ import aparmar2000.xenforoposter.model.ThreadMetadata;
 import aparmar2000.xenforoposter.model.ThreadPost;
 import aparmar2000.xenforoposter.model.conditions.AntiNecropostCondition;
 import aparmar2000.xenforoposter.model.conditions.CompositeCondition;
+import aparmar2000.xenforoposter.model.conditions.ConditionEvaluationException;
 import aparmar2000.xenforoposter.model.conditions.ConditionResult;
 import aparmar2000.xenforoposter.model.conditions.ConditionType;
 import aparmar2000.xenforoposter.model.conditions.DateRangeCondition;
@@ -467,5 +468,217 @@ class ConditionTest {
         ConditionResult pageReq = ConditionResult.failWithPageRequest("Need page 4", 4);
         assertTrue(pageReq.hasPageRequest());
         assertEquals(4, pageReq.getRequestedPage());
+    }
+
+    @Test
+    @DisplayName("PostCondition getThreadMetadataOrFail should return metadata or throw ConditionEvaluationException")
+    void testPostConditionGetMetadataOrFail() {
+        PostCondition dummy = new PostCondition() {
+            @Override public String getId() { return "dummy"; }
+            @Override public String getDisplayName() { return "Dummy"; }
+            @Override public String getDescription() { return "Dummy"; }
+            @Override public ConditionType getType() { return ConditionType.THREAD_DEPENDENT; }
+            @Override protected ConditionResult innerEvaluate(EvaluationContext context) { return pass("ok"); }
+        };
+
+        ThreadMetadata meta = ThreadMetadata.builder()
+                .threadUrl("https://forum.example.com/threads/1")
+                .title("Test")
+                .build();
+
+        EvaluationContext ctxWithMeta = EvaluationContext.builder()
+                .evaluationTime(Instant.now())
+                .forumProfile(profile)
+                .threadMetadata(meta)
+                .build();
+
+        EvaluationContext ctxWithoutMeta = EvaluationContext.builder()
+                .evaluationTime(Instant.now())
+                .forumProfile(profile)
+                .build();
+
+        // Success
+        assertSame(meta, dummy.getThreadMetadataOrFail(ctxWithMeta));
+
+        // Failure with default message
+        ConditionEvaluationException ex1 = assertThrows(ConditionEvaluationException.class,
+                () -> dummy.getThreadMetadataOrFail(ctxWithoutMeta));
+        assertFalse(ex1.getResult().isSatisfied());
+        assertEquals("Thread metadata is not available", ex1.getResult().getMessage());
+    }
+
+    @Test
+    @DisplayName("PostCondition getThreadDataOrFail should return ScrapedThreadData or throw ConditionEvaluationException")
+    void testPostConditionGetThreadDataOrFail() {
+        PostCondition dummy = new PostCondition() {
+            @Override public String getId() { return "dummy"; }
+            @Override public String getDisplayName() { return "Dummy"; }
+            @Override public String getDescription() { return "Dummy"; }
+            @Override public ConditionType getType() { return ConditionType.THREAD_DEPENDENT; }
+            @Override protected ConditionResult innerEvaluate(EvaluationContext context) { return pass("ok"); }
+        };
+
+        ScrapedThreadData threadData = ScrapedThreadData.builder()
+                .metadata(ThreadMetadata.builder().threadUrl("https://forum.example.com/threads/1").title("Test").build())
+                .build();
+
+        EvaluationContext ctxWithData = EvaluationContext.builder()
+                .evaluationTime(Instant.now())
+                .forumProfile(profile)
+                .threadData(threadData)
+                .build();
+
+        EvaluationContext ctxWithoutData = EvaluationContext.builder()
+                .evaluationTime(Instant.now())
+                .forumProfile(profile)
+                .build();
+
+        // Success
+        assertSame(threadData, dummy.getThreadDataOrFail(ctxWithData));
+
+        // Failure with default message
+        ConditionEvaluationException ex1 = assertThrows(ConditionEvaluationException.class,
+                () -> dummy.getThreadDataOrFail(ctxWithoutData));
+        assertFalse(ex1.getResult().isSatisfied());
+        assertEquals("Thread data is not available", ex1.getResult().getMessage());
+    }
+
+    @Test
+    @DisplayName("PostCondition getUsernameOrFail should return trimmed username or throw ConditionEvaluationException")
+    void testPostConditionGetUsernameOrFail() {
+        PostCondition dummy = new PostCondition() {
+            @Override public String getId() { return "dummy"; }
+            @Override public String getDisplayName() { return "Dummy"; }
+            @Override public String getDescription() { return "Dummy"; }
+            @Override public ConditionType getType() { return ConditionType.LOCAL; }
+            @Override protected ConditionResult innerEvaluate(EvaluationContext context) { return pass("ok"); }
+        };
+
+        EvaluationContext ctxWithUser = EvaluationContext.builder()
+                .evaluationTime(Instant.now())
+                .forumProfile(profile)
+                .build();
+
+        ForumProfile profileNoUser = ForumProfile.builder()
+                .name("No User")
+                .baseUrl("https://forum.example.com")
+                .username(null)
+                .build();
+
+        EvaluationContext ctxNoUser = EvaluationContext.builder()
+                .evaluationTime(Instant.now())
+                .forumProfile(profileNoUser)
+                .build();
+
+        // Success
+        assertEquals("MyUsername", dummy.getUsernameOrFail(ctxWithUser));
+
+        // Failure on null
+        ConditionEvaluationException exNull = assertThrows(ConditionEvaluationException.class,
+                () -> dummy.getUsernameOrFail(ctxNoUser));
+        assertFalse(exNull.getResult().isSatisfied());
+        assertEquals("Forum profile username is not configured", exNull.getResult().getMessage());
+    }
+
+    @Test
+    @DisplayName("PostCondition page requirement and post extraction helpers should validate loaded pages")
+    void testPostConditionPageRequirementHelpers() {
+        PostCondition dummy = new PostCondition() {
+            @Override public String getId() { return "dummy"; }
+            @Override public String getDisplayName() { return "Dummy"; }
+            @Override public String getDescription() { return "Dummy"; }
+            @Override public ConditionType getType() { return ConditionType.THREAD_DEPENDENT; }
+            @Override protected ConditionResult innerEvaluate(EvaluationContext context) { return pass("ok"); }
+        };
+
+        ThreadPost p1 = ThreadPost.builder().postId("1").author("User1").timestamp(Instant.now()).pageNumber(1).build();
+        ThreadPost p2 = ThreadPost.builder().postId("2").author("User2").timestamp(Instant.now()).pageNumber(2).build();
+
+        ScrapedThreadData threadData = ScrapedThreadData.builder()
+                .metadata(ThreadMetadata.builder()
+                        .threadUrl("https://forum.example.com/threads/1")
+                        .title("Test")
+                        .totalPages(2)
+                        .build())
+                .page(1, List.of(p1))
+                .page(2, List.of(p2))
+                .build();
+
+        ScrapedThreadData page1OnlyData = ScrapedThreadData.builder()
+                .metadata(ThreadMetadata.builder()
+                        .threadUrl("https://forum.example.com/threads/1")
+                        .title("Test")
+                        .totalPages(2)
+                        .build())
+                .page(1, List.of(p1))
+                .build();
+
+        // Success checks
+        assertDoesNotThrow(() -> dummy.requirePageLoadedOrFail(threadData, 1));
+        assertDoesNotThrow(() -> dummy.requireLatestPageLoadedOrFail(threadData));
+        assertEquals(List.of(p1), dummy.getPagePostsOrFail(threadData, 1));
+        assertEquals(List.of(p2), dummy.getLatestPagePostsOrFail(threadData));
+
+        // Missing page 2 checks
+        ConditionEvaluationException exPageReq = assertThrows(ConditionEvaluationException.class,
+                () -> dummy.requirePageLoadedOrFail(page1OnlyData, 2));
+        assertTrue(exPageReq.getResult().hasPageRequest());
+        assertEquals(2, exPageReq.getResult().getRequestedPage());
+
+        ConditionEvaluationException exLatest = assertThrows(ConditionEvaluationException.class,
+                () -> dummy.requireLatestPageLoadedOrFail(page1OnlyData));
+        assertTrue(exLatest.getResult().hasPageRequest());
+        assertEquals(2, exLatest.getResult().getRequestedPage());
+
+        ConditionEvaluationException exGetPosts = assertThrows(ConditionEvaluationException.class,
+                () -> dummy.getPagePostsOrFail(page1OnlyData, 2));
+        assertTrue(exGetPosts.getResult().hasPageRequest());
+        assertEquals(2, exGetPosts.getResult().getRequestedPage());
+    }
+
+    @Test
+    @DisplayName("PostCondition evaluate should call innerEvaluate and unwrap thrown ConditionEvaluationException")
+    void testPostConditionEvaluateUnwrapsException() {
+        PostCondition dummy = new PostCondition() {
+            @Override public String getId() { return "dummy"; }
+            @Override public String getDisplayName() { return "Dummy"; }
+            @Override public String getDescription() { return "Dummy"; }
+            @Override public ConditionType getType() { return ConditionType.LOCAL; }
+            @Override
+            protected ConditionResult innerEvaluate(EvaluationContext context) throws ConditionEvaluationException {
+                String username = getUsernameOrFail(context);
+                if ("FailUser".equals(username)) {
+                    fail("User is blocked from posting");
+                }
+                return pass("User OK: " + username);
+            }
+        };
+
+        EvaluationContext validCtx = EvaluationContext.builder()
+                .evaluationTime(Instant.now())
+                .forumProfile(profile)
+                .build();
+
+        EvaluationContext invalidCtx = EvaluationContext.builder()
+                .evaluationTime(Instant.now())
+                .forumProfile(profile.toBuilder().username(null).build())
+                .build();
+
+        EvaluationContext blockedCtx = EvaluationContext.builder()
+                .evaluationTime(Instant.now())
+                .forumProfile(profile.toBuilder().username("FailUser").build())
+                .build();
+
+        ConditionResult passRes = dummy.evaluate(validCtx);
+        assertTrue(passRes.isSatisfied());
+        assertEquals("User OK: MyUsername", passRes.getMessage());
+
+        ConditionResult failRes = dummy.evaluate(invalidCtx);
+        assertFalse(failRes.isSatisfied());
+        assertEquals("Forum profile username is not configured", failRes.getMessage());
+
+        ConditionResult blockedRes = dummy.evaluate(blockedCtx);
+        assertFalse(blockedRes.isSatisfied());
+        assertEquals("User is blocked from posting", blockedRes.getMessage());
     }
 }
