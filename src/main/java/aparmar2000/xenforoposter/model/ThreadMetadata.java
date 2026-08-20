@@ -1,13 +1,9 @@
 package aparmar2000.xenforoposter.model;
 
-import java.time.Instant;
-import java.util.List;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import lombok.Builder;
-import lombok.Singular;
 import lombok.Value;
 
 @Value
@@ -20,8 +16,6 @@ public class ThreadMetadata {
     boolean canReply;
     int replyCount;
     @Nullable String threadAuthor;
-    @Nullable String lastPostAuthor;
-    @Nullable Instant lastPostTimestamp;
     @Nullable String xfToken;
-    @Singular List<String> recentPostAuthors;
+    @Builder.Default int totalPages = 1;
 }
