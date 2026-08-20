@@ -1,0 +1,126 @@
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    background-color: #1e2227;
+    color: #dcdfe4;
+    padding: 12px;
+    margin: 0;
+}
+h1, h2, h3, h4, h5, h6 {
+    color: #dcdfe4;
+    margin-top: 14px;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+h1.bbcode-heading {
+    font-size: 20px;
+    border-bottom: 1px solid #3e4451;
+    padding-bottom: 4px;
+}
+h2.bbcode-heading {
+    font-size: 17px;
+}
+h3.bbcode-heading {
+    font-size: 15px;
+}
+p {
+    margin: 0 0 10px 0;
+}
+a {
+    color: #61afef;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+.bbcode-quote {
+    margin: 8px 0;
+    padding: 8px 12px;
+    background-color: #282c34;
+    border-left: 4px solid #4b5263;
+    border-radius: 3px;
+}
+.quote-author {
+    font-weight: bold;
+    font-size: 12px;
+    color: #61afef;
+    margin-bottom: 4px;
+}
+.bbcode-spoiler {
+    margin: 8px 0;
+    padding: 8px 12px;
+    background-color: #2c313a;
+    border: 1px solid #3e4451;
+    border-radius: 4px;
+}
+.spoiler-title {
+    font-weight: 600;
+    font-size: 12px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    color: #dcdfe4;
+    opacity: 0.8;
+}
+.bbcode-icode {
+    font-family: Consolas, Monaco, 'Courier New', monospace;
+    font-size: 12px;
+    background-color: #21252b;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+.bbcode-code {
+    background-color: #21252b;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #3e4451;
+    overflow-x: auto;
+    margin: 8px 0;
+}
+.code-header {
+    font-size: 11px;
+    font-weight: bold;
+    opacity: 0.7;
+    margin-bottom: 4px;
+    font-family: sans-serif;
+}
+.bbcode-code code {
+    font-family: Consolas, Monaco, 'Courier New', monospace;
+    font-size: 12px;
+    background-color: transparent;
+    padding: 0;
+}
+.bbcode-hr {
+    border: 0;
+    height: 1px;
+    background-color: #3e4451;
+    margin: 16px 0;
+}
+.bbcode-list {
+    margin: 0 0 10px 20px;
+    padding: 0;
+}
+.bbcode-list li {
+    margin-bottom: 4px;
+}
+.bbcode-table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 10px 0;
+}
+.bbcode-table th, .bbcode-table td {
+    border: 1px solid #4b5263;
+    padding: 6px 10px;
+    text-align: left;
+}
+.bbcode-table th {
+    background-color: #282c34;
+    font-weight: 600;
+}
+.bbcode-user {
+    color: #98c379;
+    font-weight: 600;
+    background-color: #282c34;
+    padding: 1px 4px;
+    border-radius: 3px;
+}
