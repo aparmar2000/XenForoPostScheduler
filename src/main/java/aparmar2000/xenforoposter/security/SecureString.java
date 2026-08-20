@@ -33,7 +33,7 @@ public final class SecureString implements Serializable {
     public @Nullable String getClearText() {
         return clearText;
     }
-    
+
     public boolean isEmpty() {
         return clearText == null || clearText.isEmpty();
     }
@@ -51,8 +51,12 @@ public final class SecureString implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof SecureString)) return false;
+        if (this == o) {
+			return true;
+		}
+        if (!(o instanceof SecureString)) {
+			return false;
+		}
         SecureString that = (SecureString) o;
         return Objects.equals(clearText, that.clearText);
     }

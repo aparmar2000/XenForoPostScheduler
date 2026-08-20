@@ -21,17 +21,17 @@ public class InternalResourceLoader {
 		if (foundResourceStream == null) {
 			throw new FileNotFoundException(filename + " was not found!");
 		}
-		
+
 		return foundResourceStream;
 	}
 	public static boolean internalResourceExists(@NonNull String filename) {
 		return nullableGetInternalResourceAsStream(filename) != null;
 	}
-	
+
 	@Nullable
 	private static InputStream nullableGetInternalResourceAsStream(String filename) {
 		String cleanPath = filename.startsWith("/") ? filename.substring(1) : filename;
-		
+
 		InputStream foundResourceStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(cleanPath);
 		if (foundResourceStream == null) {
 			foundResourceStream = InternalResourceLoader.class.getClassLoader().getResourceAsStream(cleanPath);
@@ -41,7 +41,7 @@ public class InternalResourceLoader {
 		}
 		return foundResourceStream;
 	}
-	
+
 	@FunctionalInterface
 	private static interface InternalResourceLoadFunction<T> {
 		public T load(String filename) throws IOException;
@@ -53,24 +53,24 @@ public class InternalResourceLoader {
 		} catch (IOException e) {
 			log.error(String.format("Exception loading internal resource %s", filename), e);
 		}
-		
+
 		return Optional.empty();
 	}
-	
+
 	public static byte[] getInternalResourceAsByteArray(String filename) throws IOException {
 		return getInternalResourceAsStream(filename).readAllBytes();
 	}
 	public static Optional<byte[]> tryGetInternalResourceAsByteArraySilent(String filename) {
 		return silentWrapper(InternalResourceLoader::getInternalResourceAsByteArray, filename);
 	}
-	
+
 	public static BufferedImage getInternalResourceAsImage(String filename) throws IOException {
 		return ImageIO.read(getInternalResourceAsStream(filename));
 	}
 	public static Optional<BufferedImage> tryGetInternalResourceAsImageSilent(String filename) {
 		return silentWrapper(InternalResourceLoader::getInternalResourceAsImage, filename);
 	}
-	
+
 	public static String getInternalResourceAsString(String filename) throws IOException {
 		return new String(getInternalResourceAsByteArray(filename), StandardCharsets.UTF_8);
 	}

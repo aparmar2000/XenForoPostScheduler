@@ -21,7 +21,7 @@ class SecureStringTest {
     void testToStringOutput() {
     	String secretString = "superSecretPassword123!";
         SecureString secure = SecureString.of(secretString);
-        
+
         assertNotNull(secure);
         assertFalse(secure.toString().contains(secretString));
         assertEquals(secretString, secure.getClearText());
