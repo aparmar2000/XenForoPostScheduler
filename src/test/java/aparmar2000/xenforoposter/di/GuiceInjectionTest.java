@@ -27,6 +27,7 @@ import aparmar2000.xenforoposter.security.SafetyRateLimiter;
 import aparmar2000.xenforoposter.security.SecureString;
 import aparmar2000.xenforoposter.settings.GeneralSettings;
 import aparmar2000.xenforoposter.ui.MainFrame;
+import aparmar2000.xenforoposter.utils.GsonSupplier;
 import aparmar2000.xenforoposter.web.XenForoWebClient;
 
 class GuiceInjectionTest {
@@ -37,6 +38,7 @@ class GuiceInjectionTest {
     @Test
     @DisplayName("Guice AppModule should successfully bootstrap and resolve all application components")
     void testGuiceAppModuleBootstrapping() {
+        @SuppressWarnings("deprecation")
         Injector injector = Guice.createInjector(new AppModule(tempDir));
         assertNotNull(injector);
 
@@ -44,7 +46,7 @@ class GuiceInjectionTest {
         CredentialEncryptionService crypto = injector.getInstance(CredentialEncryptionService.class);
         assertNotNull(crypto);
 
-        aparmar2000.xenforoposter.utils.GsonSupplier gsonSupplier = injector.getInstance(aparmar2000.xenforoposter.utils.GsonSupplier.class);
+        GsonSupplier gsonSupplier = injector.getInstance(GsonSupplier.class);
         assertNotNull(gsonSupplier);
 
         Gson gson = injector.getInstance(Gson.class);
@@ -80,6 +82,7 @@ class GuiceInjectionTest {
     @Test
     @DisplayName("CredentialEncryptionService and Gson should be shared singletons across injected components")
     void testSharedSingletons() {
+        @SuppressWarnings("deprecation")
         Injector injector = Guice.createInjector(new AppModule(tempDir));
 
         CredentialEncryptionService crypto1 = injector.getInstance(CredentialEncryptionService.class);
@@ -98,6 +101,7 @@ class GuiceInjectionTest {
     @Test
     @DisplayName("Injected Gson instance should encrypt and decrypt using the shared CredentialEncryptionService")
     void testInjectedGsonUsesSharedEncryptionService() {
+        @SuppressWarnings("deprecation")
         Injector injector = Guice.createInjector(new AppModule(tempDir));
 
         CredentialEncryptionService crypto = injector.getInstance(CredentialEncryptionService.class);
@@ -127,7 +131,8 @@ class GuiceInjectionTest {
     @Test
     @DisplayName("JobStorageService injected via Guice should persist and load credentials accurately")
     void testJobStorageServiceWithGuice() throws IOException {
-        Injector injector = Guice.createInjector(new AppModule(tempDir));
+        @SuppressWarnings("deprecation")
+		Injector injector = Guice.createInjector(new AppModule(tempDir));
         JobStorageService storageService = injector.getInstance(JobStorageService.class);
 
         ForumProfile profile = ForumProfile.builder()
