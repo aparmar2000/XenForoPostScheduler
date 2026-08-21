@@ -113,6 +113,31 @@ class BbCodePreviewRendererTest {
     }
 
     @Test
+    @DisplayName("Should render articles, indentation, and inline spoilers")
+    void testArticlesIndentsAndInlineSpoilers() {
+        String bb = "[ARTICLE]Featured article text[/ARTICLE]\n[INDENT]Indented content[/INDENT]\nCheck this [ISPOILER]hidden spoiler[/ISPOILER] secret!";
+        String html = renderer.convertBbCodeToHtml(bb);
+
+        assertTrue(html.contains("<div class=\"bbcode-article\""));
+        assertTrue(html.contains("Featured article text"));
+        assertTrue(html.contains("<div class=\"bbcode-indent\""));
+        assertTrue(html.contains("Indented content"));
+        assertTrue(html.contains("<span class=\"bbcode-ispoiler\""));
+        assertTrue(html.contains("hidden spoiler"));
+    }
+
+    @Test
+    @DisplayName("Should render fixed numeric font sizes 1 to 7 with proper pixel styling")
+    void testNumericFontSizes() {
+        String bb = "[SIZE=1]Small[/SIZE] [SIZE=4]Medium[/SIZE] [SIZE=7]Large[/SIZE]";
+        String html = renderer.convertBbCodeToHtml(bb);
+
+        assertTrue(html.contains("<span style=\"font-size: 9px;\">Small</span>"));
+        assertTrue(html.contains("<span style=\"font-size: 15px;\">Medium</span>"));
+        assertTrue(html.contains("<span style=\"font-size: 26px;\">Large</span>"));
+    }
+
+    @Test
     @DisplayName("Should render full HTML with internal stylesheet for both light and dark themes")
     void testFullHtmlRenderingWithThemeStyles() {
         String lightHtml = renderer.renderToHtml("[B]Hello[/B]", false);

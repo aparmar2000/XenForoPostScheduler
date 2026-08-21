@@ -100,31 +100,43 @@ public class BbCodePreviewRenderer {
         // Color, Size, Font
         text = text.replaceAll("(?is)\\[COLOR=['\"]?([#a-zA-Z0-9_-]+)['\"]?\\](.*?)\\[/COLOR\\]", "<span style=\"color: $1;\">$2</span>");
         text = text.replaceAll("(?is)\\[FONT=['\"]?([^'\"]+)['\"]?\\](.*?)\\[/FONT\\]", "<span style=\"font-family: $1;\">$2</span>");
-        text = text.replaceAll("(?is)\\[SIZE=['\"]?([0-9]+(?:px|pt)?)['\"]?\\](.*?)\\[/SIZE\\]", "<span style=\"font-size: $1;\">$2</span>");
+        text = text.replaceAll("(?is)\\[SIZE=['\"]?1['\"]?\\](.*?)\\[/SIZE\\]", "<span style=\"font-size: 9px;\">$1</span>");
+        text = text.replaceAll("(?is)\\[SIZE=['\"]?2['\"]?\\](.*?)\\[/SIZE\\]", "<span style=\"font-size: 10px;\">$1</span>");
+        text = text.replaceAll("(?is)\\[SIZE=['\"]?3['\"]?\\](.*?)\\[/SIZE\\]", "<span style=\"font-size: 12px;\">$1</span>");
+        text = text.replaceAll("(?is)\\[SIZE=['\"]?4['\"]?\\](.*?)\\[/SIZE\\]", "<span style=\"font-size: 15px;\">$1</span>");
+        text = text.replaceAll("(?is)\\[SIZE=['\"]?5['\"]?\\](.*?)\\[/SIZE\\]", "<span style=\"font-size: 18px;\">$1</span>");
+        text = text.replaceAll("(?is)\\[SIZE=['\"]?6['\"]?\\](.*?)\\[/SIZE\\]", "<span style=\"font-size: 22px;\">$1</span>");
+        text = text.replaceAll("(?is)\\[SIZE=['\"]?7['\"]?\\](.*?)\\[/SIZE\\]", "<span style=\"font-size: 26px;\">$1</span>");
+        text = text.replaceAll("(?is)\\[SIZE=['\"]?([0-9]+(?:px|pt))['\"]?\\](.*?)\\[/SIZE\\]", "<span style=\"font-size: $1;\">$2</span>");
 
-        // Alignment
+        // Alignment & Indentation
         text = text.replaceAll("(?is)\\[CENTER\\](.*?)\\[/CENTER\\]", "<div style=\"text-align: center;\">$1</div>");
         text = text.replaceAll("(?is)\\[LEFT\\](.*?)\\[/LEFT\\]", "<div style=\"text-align: left;\">$1</div>");
         text = text.replaceAll("(?is)\\[RIGHT\\](.*?)\\[/RIGHT\\]", "<div style=\"text-align: right;\">$1</div>");
         text = text.replaceAll("(?is)\\[ALIGN=['\"]?(left|center|right|justify)['\"]?\\](.*?)\\[/ALIGN\\]", "<div style=\"text-align: $1;\">$2</div>");
+        text = text.replaceAll("(?is)\\[INDENT\\](.*?)\\[/INDENT\\]", "<div class=\"bbcode-indent\" style=\"margin-left: 20px;\">$1</div>");
+        text = text.replaceAll("(?is)\\[INDENT=([0-9]+)\\](.*?)\\[/INDENT\\]", "<div class=\"bbcode-indent\" style=\"margin-left: calc($1 * 20px);\">$2</div>");
 
         // URLs and Images
         text = text.replaceAll("(?is)\\[URL=['\"]?([^'\"]+?)['\"]?\\](.*?)\\[/URL\\]", "<a href=\"$1\" target=\"_blank\">$2</a>");
         text = text.replaceAll("(?is)\\[URL\\](.*?)\\[/URL\\]", "<a href=\"$1\" target=\"_blank\">$1</a>");
         text = text.replaceAll("(?is)\\[IMG\\](.*?)\\[/IMG\\]", "<img src=\"$1\" style=\"max-width: 100%; height: auto; border-radius: 4px;\" />");
 
-        // User Mentions
+        // User Mentions & Articles
         text = text.replaceAll("(?is)\\[USER=['\"]?([0-9]+)['\"]?\\](.*?)\\[/USER\\]", "<span class=\"bbcode-user\">@$2</span>");
+        text = text.replaceAll("(?is)\\[ARTICLE\\](.*?)\\[/ARTICLE\\]", "<div class=\"bbcode-article\" style=\"border-left: 3px solid #007bff; padding: 6px 12px; margin: 8px 0;\">$1</div>");
 
         // Horizontal Rules
         text = text.replaceAll("(?is)\\[HR\\]\\[/HR\\]", "<hr class=\"bbcode-hr\" />");
         text = text.replaceAll("(?is)\\[HR\\]", "<hr class=\"bbcode-hr\" />");
 
-        // Spoilers
+        // Spoilers (Block and Inline)
         text = text.replaceAll("(?is)\\[SPOILER=['\"]?([^'\"]*?)['\"]?\\](.*?)\\[/SPOILER\\]",
                 "<div class=\"bbcode-spoiler\"><div class=\"spoiler-title\">Spoiler: $1</div><div class=\"spoiler-body\">$2</div></div>");
         text = text.replaceAll("(?is)\\[SPOILER\\](.*?)\\[/SPOILER\\]",
                 "<div class=\"bbcode-spoiler\"><div class=\"spoiler-title\">Spoiler</div><div class=\"spoiler-body\">$1</div></div>");
+        text = text.replaceAll("(?is)\\[ISPOILER\\](.*?)\\[/ISPOILER\\]",
+                "<span class=\"bbcode-ispoiler\" style=\"background-color: #555; color: #555; border-radius: 2px; padding: 0 4px;\" title=\"Spoiler\">$1</span>");
 
         // Quotes (process multiple times to handle nesting)
         for (int i = 0; i < 3; i++) {
