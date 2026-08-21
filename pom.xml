@@ -4,10 +4,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.aparmar2000</groupId>
 	<artifactId>XenForoPostScheduler</artifactId>
-	<version>0.0.2</version>
+	<version>0.0.3</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<guiceVersion>7.0.0</guiceVersion>
 	</properties>
 
 	<build>
@@ -87,7 +88,12 @@
 		<dependency>
 			<groupId>com.google.inject</groupId>
 			<artifactId>guice</artifactId>
-			<version>7.0.0</version>
+			<version>${guiceVersion}</version>
+		</dependency>
+		<dependency>
+		    <groupId>com.google.inject.extensions</groupId>
+		    <artifactId>guice-assistedinject</artifactId>
+		    <version>${guiceVersion}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>

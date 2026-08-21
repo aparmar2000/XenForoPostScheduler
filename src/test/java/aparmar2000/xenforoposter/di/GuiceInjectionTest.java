@@ -1,4 +1,4 @@
-package aparmar2000.xenforoposter;
+package aparmar2000.xenforoposter.di;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,7 +18,6 @@ import com.google.gson.GsonBuilder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-import aparmar2000.xenforoposter.di.AppModule;
 import aparmar2000.xenforoposter.extension.ExtensionManager;
 import aparmar2000.xenforoposter.model.ForumProfile;
 import aparmar2000.xenforoposter.scheduler.JobStorageService;

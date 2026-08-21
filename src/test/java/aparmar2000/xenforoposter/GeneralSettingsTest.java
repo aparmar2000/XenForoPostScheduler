@@ -24,7 +24,7 @@ class GeneralSettingsTest {
     @Test
     @DisplayName("GeneralSettings defaults should be properly initialized and registered")
     void testGeneralSettingsDefaults() {
-        GeneralSettings settings = new GeneralSettings();
+        GeneralSettings settings = new GeneralSettings(null, null);
         List<SettingDefinition<?>> list = settings.getRegisteredSettings();
 
         assertNotNull(list);
@@ -55,7 +55,7 @@ class GeneralSettingsTest {
     @Test
     @DisplayName("GeneralSettings typed getters dynamically reflect updated values")
     void testTypedGettersReflectUpdates() {
-        GeneralSettings settings = new GeneralSettings();
+        GeneralSettings settings = new GeneralSettings(null, null);
 
         settings.setSettingValue("scheduler.poll_interval", 15);
         assertEquals(15, settings.getPollIntervalSeconds());
@@ -76,7 +76,7 @@ class GeneralSettingsTest {
     @DisplayName("GeneralSettings should persist and restore values to/from disk")
     void testPersistence() {
         Path configFile = tempDir.resolve("general_settings.json");
-        GeneralSettings settings = new GeneralSettings(configFile);
+        GeneralSettings settings = new GeneralSettings(configFile, null);
 
         // Update settings
         settings.setSettingValue("scheduler.poll_interval", 10);
@@ -85,7 +85,7 @@ class GeneralSettingsTest {
         settings.save();
 
         // Reload in new instance
-        GeneralSettings reloaded = new GeneralSettings(configFile);
+        GeneralSettings reloaded = new GeneralSettings(configFile, null);
         assertEquals(10, reloaded.getSettingValue("scheduler.poll_interval", Integer.class));
         assertEquals(10, reloaded.getPollIntervalSeconds());
         assertEquals(false, reloaded.getSettingValue("scheduler.auto_start", Boolean.class));
@@ -104,7 +104,7 @@ class GeneralSettingsTest {
     @Test
     @DisplayName("GeneralSettingsPanel should bind UI components to GeneralSettings model")
     void testGeneralSettingsPanel() {
-        GeneralSettings settings = new GeneralSettings();
+        GeneralSettings settings = new GeneralSettings(null, null);
         GeneralSettingsPanel panel = new GeneralSettingsPanel(settings);
 
         assertNotNull(panel);

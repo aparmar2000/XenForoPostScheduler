@@ -4,7 +4,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Supplier;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.google.gson.Gson;
@@ -15,7 +14,6 @@ import aparmar2000.xenforoposter.settings.defs.BooleanSettingDefinition;
 import aparmar2000.xenforoposter.settings.defs.ChoiceSettingDefinition;
 import aparmar2000.xenforoposter.settings.defs.IntegerSettingDefinition;
 import aparmar2000.xenforoposter.settings.defs.StringSettingDefinition;
-import aparmar2000.xenforoposter.utils.GsonSupplier;
 import lombok.Getter;
 
 /**
@@ -44,26 +42,6 @@ public class GeneralSettings extends SettingsHolder {
     private final Supplier<String> defaultUserAgentSupplier;
     private final Supplier<Integer> requestTimeoutSupplier;
     private final Supplier<String> appThemeSupplier;
-
-    public GeneralSettings() {
-        this(null, (Gson) null);
-    }
-
-    public GeneralSettings(@Nullable Path settingsFile) {
-        this(settingsFile, (Gson) null);
-    }
-
-    public GeneralSettings(@NotNull GsonSupplier gsonSupplier) {
-        this(null, gsonSupplier.get());
-    }
-
-    public GeneralSettings(@NotNull Gson gson) {
-        this(null, gson);
-    }
-
-    public GeneralSettings(@Nullable Path settingsFile, @NotNull GsonSupplier gsonSupplier) {
-        this(settingsFile, gsonSupplier.get());
-    }
 
     @Inject
     public GeneralSettings(@Named("settingsFile") @Nullable Path settingsFile,

@@ -21,7 +21,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonWriter;
 import com.google.inject.Inject;
-import com.google.inject.name.Named;
+import com.google.inject.assistedinject.Assisted;
 
 import aparmar2000.xenforoposter.settings.defs.SettingDefinition;
 import lombok.Getter;
@@ -40,10 +40,13 @@ public class SettingsHolder {
     private final Map<String, Supplier<?>> memoizedSuppliers = new ConcurrentHashMap<>();
 
     @Inject
-    SettingsHolder(@Nullable @Named("settingsFile") Path settingsFile,
-                          @Nullable Gson gson) {
+    SettingsHolder(@Assisted @Nullable Path settingsFile, @Nullable Gson gson) {
         this.settingsFile = settingsFile;
         this.gson = gson;
+    }
+    
+    public static interface Factory {
+    	public SettingsHolder create(Path settingsFile);
     }
 
     /**
@@ -397,6 +400,7 @@ public class SettingsHolder {
 
 
     @SuppressWarnings("unchecked")
+
     void loadJsonElement(@NonNull String key, @NonNull JsonElement element) {
         SettingDefinition<?> def = definitions.get(key);
         if (def != null) {
