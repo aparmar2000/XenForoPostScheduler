@@ -12,8 +12,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.google.common.collect.ImmutableList;
 
-import aparmar2000.xenforoposter.extension.setting.SettingDefinition;
 import aparmar2000.xenforoposter.settings.GeneralSettings;
+import aparmar2000.xenforoposter.settings.defs.SettingDefinition;
 import aparmar2000.xenforoposter.ui.GeneralSettingsPanel;
 
 class GeneralSettingsTest {

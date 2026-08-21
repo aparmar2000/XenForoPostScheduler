@@ -1,4 +1,4 @@
-package aparmar2000.xenforoposter.extension.setting;
+package aparmar2000.xenforoposter.settings.defs;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;

@@ -11,10 +11,10 @@ import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
-import aparmar2000.xenforoposter.extension.setting.BooleanSettingDefinition;
-import aparmar2000.xenforoposter.extension.setting.ChoiceSettingDefinition;
-import aparmar2000.xenforoposter.extension.setting.IntegerSettingDefinition;
-import aparmar2000.xenforoposter.extension.setting.StringSettingDefinition;
+import aparmar2000.xenforoposter.settings.defs.BooleanSettingDefinition;
+import aparmar2000.xenforoposter.settings.defs.ChoiceSettingDefinition;
+import aparmar2000.xenforoposter.settings.defs.IntegerSettingDefinition;
+import aparmar2000.xenforoposter.settings.defs.StringSettingDefinition;
 import aparmar2000.xenforoposter.utils.GsonSupplier;
 import lombok.Getter;
 

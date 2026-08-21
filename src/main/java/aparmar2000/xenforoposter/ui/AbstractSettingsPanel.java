@@ -22,7 +22,7 @@ import javax.swing.UIManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import aparmar2000.xenforoposter.extension.setting.SettingDefinition;
+import aparmar2000.xenforoposter.settings.defs.SettingDefinition;
 import lombok.Getter;
 
 public abstract class AbstractSettingsPanel extends JPanel {

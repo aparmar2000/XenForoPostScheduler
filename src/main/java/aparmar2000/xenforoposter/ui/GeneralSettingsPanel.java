@@ -10,8 +10,8 @@ import javax.swing.JPanel;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import aparmar2000.xenforoposter.extension.setting.SettingDefinition;
 import aparmar2000.xenforoposter.settings.GeneralSettings;
+import aparmar2000.xenforoposter.settings.defs.SettingDefinition;
 import lombok.Getter;
 
 public class GeneralSettingsPanel extends AbstractSettingsPanel {

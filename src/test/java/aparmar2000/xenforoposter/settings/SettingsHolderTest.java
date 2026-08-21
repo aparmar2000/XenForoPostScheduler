@@ -18,10 +18,10 @@ import org.junit.jupiter.api.io.TempDir;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import aparmar2000.xenforoposter.extension.setting.BooleanSettingDefinition;
-import aparmar2000.xenforoposter.extension.setting.ChoiceSettingDefinition;
-import aparmar2000.xenforoposter.extension.setting.IntegerSettingDefinition;
-import aparmar2000.xenforoposter.extension.setting.StringSettingDefinition;
+import aparmar2000.xenforoposter.settings.defs.BooleanSettingDefinition;
+import aparmar2000.xenforoposter.settings.defs.ChoiceSettingDefinition;
+import aparmar2000.xenforoposter.settings.defs.IntegerSettingDefinition;
+import aparmar2000.xenforoposter.settings.defs.StringSettingDefinition;
 
 class SettingsHolderTest {
 

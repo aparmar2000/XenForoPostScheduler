@@ -23,7 +23,7 @@ import com.google.gson.stream.JsonWriter;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
-import aparmar2000.xenforoposter.extension.setting.SettingDefinition;
+import aparmar2000.xenforoposter.settings.defs.SettingDefinition;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;

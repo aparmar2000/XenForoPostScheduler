@@ -1,36 +1,27 @@
-package aparmar2000.xenforoposter.extension.setting;
+package aparmar2000.xenforoposter.settings.defs;
 
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 
 import javax.swing.JComponent;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MultilineStringSettingDefinition extends SettingDefinition<String> {
-    private final JTextArea textArea;
-    private final JScrollPane scrollPane;
+public class StringSettingDefinition extends SettingDefinition<String> {
+    private final JTextField textField;
 
-    public MultilineStringSettingDefinition(@NotNull String key, @NotNull String label, @Nullable String description, @NotNull String defaultValue) {
-        this(key, label, description, defaultValue, 3, 20, null);
+    public StringSettingDefinition(@NotNull String key, @NotNull String label, @Nullable String description, @NotNull String defaultValue) {
+        this(key, label, description, defaultValue, null);
     }
 
-    public MultilineStringSettingDefinition(@NotNull String key, @NotNull String label, @Nullable String description, @NotNull String defaultValue, @Nullable String group) {
-        this(key, label, description, defaultValue, 3, 20, group);
-    }
-
-    public MultilineStringSettingDefinition(@NotNull String key, @NotNull String label, @Nullable String description, @NotNull String defaultValue, int rows, int columns, @Nullable String group) {
+    public StringSettingDefinition(@NotNull String key, @NotNull String label, @Nullable String description, @NotNull String defaultValue, @Nullable String group) {
         super(key, label, description, defaultValue, group);
 
-        this.textArea = new JTextArea(defaultValue, rows, columns);
-        this.textArea.setLineWrap(true);
-        this.textArea.setWrapStyleWord(true);
-        this.scrollPane = new JScrollPane(this.textArea);
+        this.textField = new JTextField(defaultValue);
 
         DocumentListener docListener = new DocumentListener() {
             @Override
@@ -56,8 +47,8 @@ public class MultilineStringSettingDefinition extends SettingDefinition<String> 
             }
         };
 
-        this.textArea.getDocument().addDocumentListener(docListener);
-        this.textArea.addFocusListener(focusAdapter);
+        this.textField.getDocument().addDocumentListener(docListener);
+        this.textField.addFocusListener(focusAdapter);
     }
 
     @Override
@@ -82,7 +73,7 @@ public class MultilineStringSettingDefinition extends SettingDefinition<String> 
 
     @Override
     public @NotNull JComponent getUiComponent() {
-        return scrollPane;
+        return textField;
     }
 
     @Override
@@ -91,17 +82,13 @@ public class MultilineStringSettingDefinition extends SettingDefinition<String> 
     }
 
     @Override
-    public boolean expandsVertically() {
-        return true;
-    }
-
-    @Override
     public @NotNull String getUiValue() {
-        return textArea.getText();
+        return textField.getText();
     }
 
     @Override
     public void setUiValue(@NotNull String value) {
-        textArea.setText(value != null ? value : "");
+        textField.setText(value != null ? value : "");
     }
 }
+

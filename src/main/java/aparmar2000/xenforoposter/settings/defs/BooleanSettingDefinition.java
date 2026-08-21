@@ -1,4 +1,4 @@
-package aparmar2000.xenforoposter.extension.setting;
+package aparmar2000.xenforoposter.settings.defs;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
