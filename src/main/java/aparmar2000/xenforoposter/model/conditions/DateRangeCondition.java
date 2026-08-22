@@ -39,7 +39,8 @@ public class DateRangeCondition extends PostCondition {
 		}
 		if (startDate != null) {
 			return "From " + DATE_FORMATTER.format(startDate) + " onwards";
-		} else if (endDate != null) {
+		}
+		if (endDate != null) {
 			return "Until " + DATE_FORMATTER.format(endDate);
 		}
 		return "Any date";

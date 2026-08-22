@@ -332,7 +332,8 @@ public class XenForoWebClient implements AutoCloseable {
 				}
 				if (respBody.contains("two_factor") || respBody.contains("two-step")) {
 					return LoginResult.failure("Forum requires two-Factor Authentication. This is not yet supported.");
-				} else if (respBody.contains("errors")) {
+				}
+				if (respBody.contains("errors")) {
 					try {
 						JsonObject obj = JsonParser.parseString(respBody).getAsJsonObject();
 						String errorMsg = obj.has("errors") ? obj.get("errors").toString() : "Authentication failed";

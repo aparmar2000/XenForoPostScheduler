@@ -420,7 +420,8 @@ public class SettingsHolder {
 					if (def.getValueType() == Integer.class && prim.isNumber()) {
 						setSettingValue((SettingDefinition<Integer>) def, prim.getAsInt());
 						return;
-					} else if (def.getValueType() == String.class && prim.isString()) {
+					}
+					if (def.getValueType() == String.class && prim.isString()) {
 						setSettingValue((SettingDefinition<String>) def, prim.getAsString());
 						return;
 					}
