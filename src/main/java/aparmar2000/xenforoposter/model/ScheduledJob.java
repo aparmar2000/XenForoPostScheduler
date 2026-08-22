@@ -23,19 +23,20 @@ public class ScheduledJob {
     @Getter
     @RequiredArgsConstructor
     public enum JobStatus {
-        DRAFT("Draft"),
-        SCHEDULED("Scheduled"),
-        WAITING_LOCAL_CONDITIONS("Waiting (Time/Local)"),
-        WAITING_THREAD_POLL("Queued for Poll"),
-        WAITING_THREAD_CONDITIONS("Waiting (Thread Conditions)"),
-        READY_TO_POST("Ready to Post"),
-        POSTING("Posting..."),
-        COMPLETED("Completed"),
-        FAILED("Failed"),
-        CANCELLED("Cancelled"),
-        PAUSED("Paused");
+        DRAFT("Draft", false),
+        SCHEDULED("Scheduled", true),
+        WAITING_LOCAL_CONDITIONS("Waiting (Time/Local)", true),
+        WAITING_THREAD_POLL("Queued for Poll", true),
+        WAITING_THREAD_CONDITIONS("Waiting (Thread Conditions)", true),
+        READY_TO_POST("Ready to Post", true),
+        POSTING("Posting...", false),
+        COMPLETED("Completed", false),
+        FAILED("Failed", false),
+        CANCELLED("Cancelled", false),
+        PAUSED("Paused", false);
 
         private final String displayName;
+        private final boolean isActive;
 
         @Override
         public String toString() {
