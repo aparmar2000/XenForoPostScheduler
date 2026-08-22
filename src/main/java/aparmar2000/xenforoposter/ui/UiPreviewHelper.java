@@ -27,7 +27,6 @@ import com.google.inject.Injector;
 
 import aparmar2000.xenforoposter.di.AppModule;
 import aparmar2000.xenforoposter.extension.ExtensionManager;
-import aparmar2000.xenforoposter.extension.builtin.FormattingToolsExtension;
 import aparmar2000.xenforoposter.extension.builtin.TemplateInsertExtension;
 import aparmar2000.xenforoposter.model.ForumProfile;
 import aparmar2000.xenforoposter.model.JobPriority;
@@ -182,7 +181,6 @@ public final class UiPreviewHelper {
 		@SuppressWarnings("deprecation")
 		Injector injector = Guice.createInjector(new AppModule(tempDir));
 		ExtensionManager extensionManager = injector.getInstance(ExtensionManager.class);
-		extensionManager.registerInternalExtension(new FormattingToolsExtension());
 		extensionManager.registerInternalExtension(new TemplateInsertExtension());
 		extensionManager.loadAllExtensions();
 		return extensionManager;
