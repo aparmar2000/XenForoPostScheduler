@@ -21,15 +21,15 @@ class BbCodeTokenizerTest {
 	private BbCodeTagDefinitionRegistry registry;
 	private BbCodeTokenizer tokenizer;
 
-	private final BbCodeTagDefinition bTag = new BbCodeTagDefinition("B");
-	private final BbCodeTagDefinition iTag = new BbCodeTagDefinition("I");
-	private final BbCodeTagDefinition uTag = new BbCodeTagDefinition("U");
-	private final BbCodeTagDefinition cTag = new BbCodeTagDefinition("C");
-	private final BbCodeTagDefinition codeTag = new BbCodeTagDefinition("CODE");
-	private final BbCodeTagDefinition colorTag = new BbCodeTagDefinition("COLOR");
-	private final BbCodeTagDefinition urlTag = new BbCodeTagDefinition("URL");
-	private final BbCodeTagDefinition quoteTag = new BbCodeTagDefinition("QUOTE");
-	private final BbCodeTagDefinition attachTag = new BbCodeTagDefinition("ATTACH");
+	private final BbCodeTagDefinition bTag = new BbCodeTagDefinition("B", true);
+	private final BbCodeTagDefinition iTag = new BbCodeTagDefinition("I", true);
+	private final BbCodeTagDefinition uTag = new BbCodeTagDefinition("U", true);
+	private final BbCodeTagDefinition cTag = new BbCodeTagDefinition("C", true);
+	private final BbCodeTagDefinition codeTag = new BbCodeTagDefinition("CODE", false);
+	private final BbCodeTagDefinition colorTag = new BbCodeTagDefinition("COLOR", true);
+	private final BbCodeTagDefinition urlTag = new BbCodeTagDefinition("URL", true);
+	private final BbCodeTagDefinition quoteTag = new BbCodeTagDefinition("QUOTE", true);
+	private final BbCodeTagDefinition attachTag = new BbCodeTagDefinition("ATTACH", false);
 
 	@BeforeEach
 	void setUp() {
