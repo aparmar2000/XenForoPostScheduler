@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.beans.Beans;
+import java.io.InputStream;
+import java.util.Properties;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -32,6 +34,7 @@ import com.google.inject.Inject;
 import aparmar2000.xenforoposter.extension.ExtensionManager;
 import aparmar2000.xenforoposter.scheduler.SchedulerEngine;
 import aparmar2000.xenforoposter.settings.GeneralSettings;
+import aparmar2000.xenforoposter.utils.InternalResourceLoader;
 import aparmar2000.xenforoposter.web.XenForoWebClient;
 
 public class MainFrame extends JFrame {
@@ -164,7 +167,7 @@ public class MainFrame extends JFrame {
 		JMenu helpMenu = new JMenu("Help");
 		JMenuItem aboutItem = new JMenuItem("About");
 		aboutItem.addActionListener(e -> JOptionPane.showMessageDialog(this,
-				"XenForo Post Scheduler\nVersion 1.0.0\n\nCondition-based automated poster with XenForo BBCode live preview,\nanti-abuse rate limiting, and extension support.",
+				"XenForo Post Scheduler\nVersion " + getAppVersion() + "\n\nCondition-based automated poster with XenForo BBCode live preview,\nanti-abuse rate limiting, and extension support.",
 				"About XenForo Post Scheduler", JOptionPane.INFORMATION_MESSAGE));
 		helpMenu.add(aboutItem);
 
@@ -203,6 +206,23 @@ public class MainFrame extends JFrame {
 			engineStatusLabel.setForeground(new Color(220, 53, 69));
 			engineToggleBtn.setText("Resume Scheduler Engine");
 		}
+	}
+
+	/**
+	 * Resolves the application artifact version dynamically from filtered properties or package manifest.
+	 *
+	 * @return the resolved application version string
+	 */
+	public static String getAppVersion() {
+		try (InputStream in = InternalResourceLoader.getInternalResourceAsStream("version.properties")) {
+			Properties props = new Properties();
+			props.load(in);
+			String version = props.getProperty("version");
+			if (version != null && !version.isBlank() && !version.startsWith("${")) {
+				return version.trim();
+			}
+		} catch (Exception ignored) { }
+		return "unknown";
 	}
 
 	/**
