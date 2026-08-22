@@ -9,11 +9,15 @@ import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.MockedStatic;
 
 import com.google.common.collect.ImmutableList;
 
@@ -26,6 +30,24 @@ class GeneralSettingsTest {
 
 	@TempDir
 	Path tempDir;
+
+	private MockedStatic<JOptionPane> mockedJOptionPane;
+
+	@BeforeEach
+	void setUp() {
+		mockedJOptionPane = mockStatic(JOptionPane.class);
+		mockedJOptionPane.when(() -> JOptionPane.showConfirmDialog(any(), any(), any(), anyInt()))
+				.thenReturn(JOptionPane.YES_OPTION);
+		mockedJOptionPane.when(() -> JOptionPane.showConfirmDialog(any(), any(), any(), anyInt(), anyInt()))
+				.thenReturn(JOptionPane.YES_OPTION);
+	}
+
+	@AfterEach
+	void tearDown() {
+		if (mockedJOptionPane != null) {
+			mockedJOptionPane.close();
+		}
+	}
 
 	@Test
 	@DisplayName("GeneralSettings defaults should be properly initialized and registered")
@@ -108,7 +130,7 @@ class GeneralSettingsTest {
 	}
 
 	@Test
-	@DisplayName("GeneralSettingsPanel should bind UI components to GeneralSettings model")
+	@DisplayName("GeneralSettingsPanel should bind UI components to GeneralSettings model and handle actions")
 	void testGeneralSettingsPanel() {
 		GeneralSettings settings = new GeneralSettings(null, null);
 		GeneralSettingsPanel panel = new GeneralSettingsPanel(settings);
@@ -118,10 +140,29 @@ class GeneralSettingsTest {
 		assertTrue(panel.getFormContainer().getComponentCount() > 0);
 		assertNotNull(panel.getHeaderLabel());
 		assertEquals("Application-wide configuration and preferences", panel.getHeaderLabel().getText());
+
+		// Test saveSettings
+		panel.saveSettings();
+
+		// Modify setting
+		settings.setSettingValue("scheduler.poll_interval", 15);
+		assertEquals(15, settings.getPollIntervalSeconds());
+
+		// Cancel reset -> value preserved
+		mockedJOptionPane.when(() -> JOptionPane.showConfirmDialog(any(), any(), any(), anyInt(), anyInt()))
+				.thenReturn(JOptionPane.NO_OPTION);
+		panel.resetDefaults();
+		assertEquals(15, settings.getPollIntervalSeconds());
+
+		// Confirm reset -> value restored to default
+		mockedJOptionPane.when(() -> JOptionPane.showConfirmDialog(any(), any(), any(), anyInt(), anyInt()))
+				.thenReturn(JOptionPane.YES_OPTION);
+		panel.resetDefaults();
+		assertEquals(3, settings.getPollIntervalSeconds());
 	}
 
 	@Test
-	@DisplayName("GeneralSettingsPanel should interact with mocked GeneralSettings during reload")
+	@DisplayName("GeneralSettingsPanel should interact with mocked GeneralSettings during reload, revert, save, and reset")
 	void testGeneralSettingsPanelWithMockedSettings() {
 		GeneralSettings mockSettings = mock(GeneralSettings.class);
 		when(mockSettings.getRegisteredSettings()).thenReturn(ImmutableList.of());
@@ -139,6 +180,18 @@ class GeneralSettingsTest {
 
 		panel.saveSettings();
 		verify(mockSettings).save();
+
+		// Test reset cancellation -> does not call resetAllToDefaults()
+		mockedJOptionPane.when(() -> JOptionPane.showConfirmDialog(any(), any(), any(), anyInt(), anyInt()))
+				.thenReturn(JOptionPane.NO_OPTION);
+		panel.resetDefaults();
+		verify(mockSettings, never()).resetAllToDefaults();
+
+		// Test reset confirmation -> calls resetAllToDefaults()
+		mockedJOptionPane.when(() -> JOptionPane.showConfirmDialog(any(), any(), any(), anyInt(), anyInt()))
+				.thenReturn(JOptionPane.YES_OPTION);
+		panel.resetDefaults();
+		verify(mockSettings).resetAllToDefaults();
 	}
 
 	@Test

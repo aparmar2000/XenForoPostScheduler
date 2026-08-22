@@ -7,11 +7,14 @@ import java.nio.file.Path;
 import java.util.List;
 
 import javax.swing.JCheckBox;
+import javax.swing.JOptionPane;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.MockedStatic;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
@@ -35,12 +38,26 @@ class ExtensionSettingsTest {
 	Path tempDir;
 
 	private ExtensionManager extensionManager;
+	private MockedStatic<JOptionPane> mockedJOptionPane;
 
 	@BeforeEach
 	void setUp() {
+		mockedJOptionPane = mockStatic(JOptionPane.class);
+		mockedJOptionPane.when(() -> JOptionPane.showConfirmDialog(any(), any(), any(), anyInt()))
+				.thenReturn(JOptionPane.YES_OPTION);
+		mockedJOptionPane.when(() -> JOptionPane.showConfirmDialog(any(), any(), any(), anyInt(), anyInt()))
+				.thenReturn(JOptionPane.YES_OPTION);
+
 		@SuppressWarnings("deprecation")
 		Injector injector = Guice.createInjector(new AppModule(tempDir));
 		extensionManager = injector.getInstance(ExtensionManager.class);
+	}
+
+	@AfterEach
+	void tearDown() {
+		if (mockedJOptionPane != null) {
+			mockedJOptionPane.close();
+		}
 	}
 
 	private static class SampleSettingsExtension implements Extension {
@@ -115,7 +132,15 @@ class ExtensionSettingsTest {
 		panel.revertSettings();
 		panel.reloadSettings();
 
-		// Test resetting defaults
+		// Test resetting defaults: Cancel reset -> value preserved
+		mockedJOptionPane.when(() -> JOptionPane.showConfirmDialog(any(), any(), any(), anyInt(), anyInt()))
+				.thenReturn(JOptionPane.NO_OPTION);
+		panel.resetDefaults();
+		assertEquals("https://modified.example.com", holder.getContext().getSettingValue("api_endpoint", String.class));
+
+		// Test resetting defaults: Confirm reset -> value restored to default
+		mockedJOptionPane.when(() -> JOptionPane.showConfirmDialog(any(), any(), any(), anyInt(), anyInt()))
+				.thenReturn(JOptionPane.YES_OPTION);
 		panel.resetDefaults();
 		assertEquals("https://api.example.com", holder.getContext().getSettingValue("api_endpoint", String.class));
 
@@ -150,6 +175,15 @@ class ExtensionSettingsTest {
 		panel.reloadSettings();
 		verify(mockContext).loadSettings();
 
+		// Test reset cancellation -> does not call resetSettingsToDefaults()
+		mockedJOptionPane.when(() -> JOptionPane.showConfirmDialog(any(), any(), any(), anyInt(), anyInt()))
+				.thenReturn(JOptionPane.NO_OPTION);
+		panel.resetDefaults();
+		verify(mockContext, never()).resetSettingsToDefaults();
+
+		// Test reset confirmation -> calls resetSettingsToDefaults()
+		mockedJOptionPane.when(() -> JOptionPane.showConfirmDialog(any(), any(), any(), anyInt(), anyInt()))
+				.thenReturn(JOptionPane.YES_OPTION);
 		panel.resetDefaults();
 		verify(mockContext).resetSettingsToDefaults();
 	}

@@ -1,6 +1,4 @@
 package aparmar2000.xenforoposter.ui;
-
-import java.awt.GraphicsEnvironment;
 import java.beans.Beans;
 import java.util.List;
 
@@ -87,12 +85,10 @@ public class ExtensionSettingsPanel extends AbstractSettingsPanel {
 			return;
 		}
 		currentHolder.getContext().saveSettings();
-		if (!GraphicsEnvironment.isHeadless()) {
-			JOptionPane.showMessageDialog(this,
-					String.format("Settings for '%s' saved successfully.", currentHolder.getExtension().getName()),
-					"Settings Saved",
-					JOptionPane.INFORMATION_MESSAGE);
-		}
+		JOptionPane.showMessageDialog(this,
+				String.format("Settings for '%s' saved successfully.", currentHolder.getExtension().getName()),
+				"Settings Saved",
+				JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	@Override
@@ -109,15 +105,12 @@ public class ExtensionSettingsPanel extends AbstractSettingsPanel {
 		if (currentHolder == null) {
 			return;
 		}
-		int choice = JOptionPane.YES_OPTION;
-		if (!GraphicsEnvironment.isHeadless()) {
-			choice = JOptionPane.showConfirmDialog(this,
-					String.format("Are you sure you want to reset all settings for '%s' to default values?",
-							currentHolder.getExtension().getName()),
-					"Reset Settings",
-					JOptionPane.YES_NO_OPTION,
-					JOptionPane.WARNING_MESSAGE);
-		}
+		int choice = JOptionPane.showConfirmDialog(this,
+				String.format("Are you sure you want to reset all settings for '%s' to default values?",
+						currentHolder.getExtension().getName()),
+				"Reset Settings",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.WARNING_MESSAGE);
 		if (choice == JOptionPane.YES_OPTION) {
 			currentHolder.getContext().resetSettingsToDefaults();
 			displayExtensionSettings(currentHolder);

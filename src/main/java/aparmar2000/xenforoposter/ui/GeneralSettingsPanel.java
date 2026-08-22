@@ -1,7 +1,5 @@
 package aparmar2000.xenforoposter.ui;
 
-import java.awt.GraphicsEnvironment;
-
 import javax.swing.JOptionPane;
 
 import org.jetbrains.annotations.ApiStatus;
@@ -59,12 +57,10 @@ public class GeneralSettingsPanel extends AbstractSettingsPanel {
 	@Override
 	public void saveSettings() {
 		generalSettings.save();
-		if (!GraphicsEnvironment.isHeadless()) {
-			JOptionPane.showMessageDialog(this,
-					"General settings saved successfully.",
-					"Settings Saved",
-					JOptionPane.INFORMATION_MESSAGE);
-		}
+		JOptionPane.showMessageDialog(this,
+				"General settings saved successfully.",
+				"Settings Saved",
+				JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	@Override
@@ -75,14 +71,11 @@ public class GeneralSettingsPanel extends AbstractSettingsPanel {
 
 	@Override
 	public void resetDefaults() {
-		int choice = JOptionPane.YES_OPTION;
-		if (!GraphicsEnvironment.isHeadless()) {
-			choice = JOptionPane.showConfirmDialog(this,
-					"Are you sure you want to reset all settings to default values?",
-					"Reset Settings",
-					JOptionPane.YES_NO_OPTION,
-					JOptionPane.WARNING_MESSAGE);
-		}
+		int choice = JOptionPane.showConfirmDialog(this,
+				"Are you sure you want to reset all settings to default values?",
+				"Reset Settings",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.WARNING_MESSAGE);
 		if (choice == JOptionPane.YES_OPTION) {
 			generalSettings.resetAllToDefaults();
 			populateSettings(generalSettings.getRegisteredSettings());
