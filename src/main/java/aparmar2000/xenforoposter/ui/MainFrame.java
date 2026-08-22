@@ -35,184 +35,184 @@ import aparmar2000.xenforoposter.settings.GeneralSettings;
 import aparmar2000.xenforoposter.web.XenForoWebClient;
 
 public class MainFrame extends JFrame {
-    private static final long serialVersionUID = 3227622158757362809L;
+	private static final long serialVersionUID = 3227622158757362809L;
 
 	private final SchedulerEngine schedulerEngine;
-    private final ExtensionManager extensionManager;
-    private final GeneralSettings generalSettings;
+	private final ExtensionManager extensionManager;
+	private final GeneralSettings generalSettings;
 
-    private final JTabbedPane tabbedPane;
-    private final JobListPanel jobListPanel;
-    private final PostEditorFormPanel postEditorPanel;
-    private final AccountManagerPanel accountPanel;
+	private final JTabbedPane tabbedPane;
+	private final JobListPanel jobListPanel;
+	private final PostEditorFormPanel postEditorPanel;
+	private final AccountManagerPanel accountPanel;
 
-    private final JLabel engineStatusLabel;
-    private final JButton engineToggleBtn;
+	private final JLabel engineStatusLabel;
+	private final JButton engineToggleBtn;
 
-    /**
-     * Design-time only constructor for Eclipse WindowBuilder preview.
-     * @wbp.parser.constructor
-     * @deprecated For WindowBuilder GUI designer and preview use only.
-     */
-    @Deprecated
-    @ApiStatus.Internal
-    public MainFrame() {
-        this(UiPreviewHelper.createPreviewSchedulerEngine(),
-             UiPreviewHelper.createPreviewExtensionManager(),
-             UiPreviewHelper.createPreviewWebClient(),
-             UiPreviewHelper.createPreviewGeneralSettings());
-        if (schedulerEngine.isRunning()) {
-            schedulerEngine.stop();
-        }
-    }
+	/**
+	 * Design-time only constructor for Eclipse WindowBuilder preview.
+	 * @wbp.parser.constructor
+	 * @deprecated For WindowBuilder GUI designer and preview use only.
+	 */
+	@Deprecated
+	@ApiStatus.Internal
+	public MainFrame() {
+		this(UiPreviewHelper.createPreviewSchedulerEngine(),
+				UiPreviewHelper.createPreviewExtensionManager(),
+				UiPreviewHelper.createPreviewWebClient(),
+				UiPreviewHelper.createPreviewGeneralSettings());
+		if (schedulerEngine.isRunning()) {
+			schedulerEngine.stop();
+		}
+	}
 
-    @Inject
-    public MainFrame(@NotNull SchedulerEngine schedulerEngine,
-                     @NotNull ExtensionManager extensionManager,
-                     @NotNull XenForoWebClient webClient,
-                     @NotNull GeneralSettings generalSettings) {
-        super("XenForo Post Scheduler");
-        this.schedulerEngine = schedulerEngine;
-        this.extensionManager = extensionManager;
-        this.generalSettings = generalSettings;
+	@Inject
+	public MainFrame(@NotNull SchedulerEngine schedulerEngine,
+			@NotNull ExtensionManager extensionManager,
+			@NotNull XenForoWebClient webClient,
+			@NotNull GeneralSettings generalSettings) {
+		super("XenForo Post Scheduler");
+		this.schedulerEngine = schedulerEngine;
+		this.extensionManager = extensionManager;
+		this.generalSettings = generalSettings;
 
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setSize(1100, 750);
-        setMinimumSize(new Dimension(850, 600));
-        setLocationRelativeTo(null);
+		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		setSize(1100, 750);
+		setMinimumSize(new Dimension(850, 600));
+		setLocationRelativeTo(null);
 
-        // Build Menu Bar
-        setJMenuBar(createMenuBar());
+		// Build Menu Bar
+		setJMenuBar(createMenuBar());
 
-        // Tabbed Panels
-        tabbedPane = new JTabbedPane();
+		// Tabbed Panels
+		tabbedPane = new JTabbedPane();
 
-        postEditorPanel = new PostEditorFormPanel(schedulerEngine, extensionManager);
-        jobListPanel = new JobListPanel(schedulerEngine, job -> {
-            postEditorPanel.loadJobForEditing(job);
-            tabbedPane.setSelectedComponent(postEditorPanel);
-        });
-        accountPanel = new AccountManagerPanel(schedulerEngine, webClient);
+		postEditorPanel = new PostEditorFormPanel(schedulerEngine, extensionManager);
+		jobListPanel = new JobListPanel(schedulerEngine, job -> {
+			postEditorPanel.loadJobForEditing(job);
+			tabbedPane.setSelectedComponent(postEditorPanel);
+		});
+		accountPanel = new AccountManagerPanel(schedulerEngine, webClient);
 
-        tabbedPane.addTab("Jobs & Diagnostics", jobListPanel);
-        tabbedPane.addTab("Post Composer & Scheduler", postEditorPanel);
-        tabbedPane.addTab("Forum Accounts", accountPanel);
+		tabbedPane.addTab("Jobs & Diagnostics", jobListPanel);
+		tabbedPane.addTab("Post Composer & Scheduler", postEditorPanel);
+		tabbedPane.addTab("Forum Accounts", accountPanel);
 
-        // Status Bar at Bottom
-        JPanel statusBar = new JPanel(new BorderLayout(8, 2));
-        statusBar.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(1, 0, 0, 0, Color.GRAY),
-                BorderFactory.createEmptyBorder(4, 10, 4, 10)
-        ));
+		// Status Bar at Bottom
+		JPanel statusBar = new JPanel(new BorderLayout(8, 2));
+		statusBar.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createMatteBorder(1, 0, 0, 0, Color.GRAY),
+				BorderFactory.createEmptyBorder(4, 10, 4, 10)
+				));
 
-        engineStatusLabel = new JLabel("Engine: Running (Polling active)");
-        engineStatusLabel.setIcon(UIManager.getIcon("Tree.leafIcon"));
+		engineStatusLabel = new JLabel("Engine: Running (Polling active)");
+		engineStatusLabel.setIcon(UIManager.getIcon("Tree.leafIcon"));
 
-        engineToggleBtn = new JButton("Pause Scheduler Engine");
-        engineToggleBtn.addActionListener(e -> toggleEngine());
+		engineToggleBtn = new JButton("Pause Scheduler Engine");
+		engineToggleBtn.addActionListener(e -> toggleEngine());
 
-        statusBar.add(engineStatusLabel, BorderLayout.WEST);
-        statusBar.add(engineToggleBtn, BorderLayout.EAST);
+		statusBar.add(engineStatusLabel, BorderLayout.WEST);
+		statusBar.add(engineToggleBtn, BorderLayout.EAST);
 
-        getContentPane().setLayout(new BorderLayout());
-        getContentPane().add(tabbedPane, BorderLayout.CENTER);
-        getContentPane().add(statusBar, BorderLayout.SOUTH);
+		getContentPane().setLayout(new BorderLayout());
+		getContentPane().add(tabbedPane, BorderLayout.CENTER);
+		getContentPane().add(statusBar, BorderLayout.SOUTH);
 
-        // Start scheduler (only when not in design mode)
-        if (!Beans.isDesignTime()) {
-            schedulerEngine.start();
-        }
-        updateEngineStatusUI();
-    }
+		// Start scheduler (only when not in design mode)
+		if (!Beans.isDesignTime()) {
+			schedulerEngine.start();
+		}
+		updateEngineStatusUI();
+	}
 
-    private JMenuBar createMenuBar() {
-        JMenuBar menuBar = new JMenuBar();
+	private JMenuBar createMenuBar() {
+		JMenuBar menuBar = new JMenuBar();
 
-        JMenu fileMenu = new JMenu("File");
-        fileMenu.setMnemonic(KeyEvent.VK_F);
+		JMenu fileMenu = new JMenu("File");
+		fileMenu.setMnemonic(KeyEvent.VK_F);
 
-        JMenuItem settingsItem = new JMenuItem("Settings...");
-        settingsItem.setMnemonic(KeyEvent.VK_S);
-        settingsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_COMMA,
-                java.awt.Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
-        settingsItem.addActionListener(e -> openSettingsDialog());
-        fileMenu.add(settingsItem);
+		JMenuItem settingsItem = new JMenuItem("Settings...");
+		settingsItem.setMnemonic(KeyEvent.VK_S);
+		settingsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_COMMA,
+				java.awt.Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+		settingsItem.addActionListener(e -> openSettingsDialog());
+		fileMenu.add(settingsItem);
 
-        fileMenu.addSeparator();
+		fileMenu.addSeparator();
 
-        JMenuItem exitItem = new JMenuItem("Exit");
-        exitItem.setMnemonic(KeyEvent.VK_X);
-        exitItem.addActionListener(e -> System.exit(0));
-        fileMenu.add(exitItem);
+		JMenuItem exitItem = new JMenuItem("Exit");
+		exitItem.setMnemonic(KeyEvent.VK_X);
+		exitItem.addActionListener(e -> System.exit(0));
+		fileMenu.add(exitItem);
 
-        JMenu viewMenu = new JMenu("View");
-        JMenuItem darkThemeItem = new JMenuItem("Dark Theme");
-        darkThemeItem.addActionListener(e -> {
-            FlatDarkLaf.setup();
-            FlatLaf.updateUI();
-            editorRefresh();
-        });
-        JMenuItem lightThemeItem = new JMenuItem("Light Theme");
-        lightThemeItem.addActionListener(e -> {
-            FlatLightLaf.setup();
-            FlatLaf.updateUI();
-            editorRefresh();
-        });
-        viewMenu.add(darkThemeItem);
-        viewMenu.add(lightThemeItem);
+		JMenu viewMenu = new JMenu("View");
+		JMenuItem darkThemeItem = new JMenuItem("Dark Theme");
+		darkThemeItem.addActionListener(e -> {
+			FlatDarkLaf.setup();
+			FlatLaf.updateUI();
+			editorRefresh();
+		});
+		JMenuItem lightThemeItem = new JMenuItem("Light Theme");
+		lightThemeItem.addActionListener(e -> {
+			FlatLightLaf.setup();
+			FlatLaf.updateUI();
+			editorRefresh();
+		});
+		viewMenu.add(darkThemeItem);
+		viewMenu.add(lightThemeItem);
 
-        JMenu helpMenu = new JMenu("Help");
-        JMenuItem aboutItem = new JMenuItem("About");
-        aboutItem.addActionListener(e -> JOptionPane.showMessageDialog(this,
-                "XenForo Post Scheduler\nVersion 1.0.0\n\nCondition-based automated poster with XenForo BBCode live preview,\nanti-abuse rate limiting, and extension support.",
-                "About XenForo Post Scheduler", JOptionPane.INFORMATION_MESSAGE));
-        helpMenu.add(aboutItem);
+		JMenu helpMenu = new JMenu("Help");
+		JMenuItem aboutItem = new JMenuItem("About");
+		aboutItem.addActionListener(e -> JOptionPane.showMessageDialog(this,
+				"XenForo Post Scheduler\nVersion 1.0.0\n\nCondition-based automated poster with XenForo BBCode live preview,\nanti-abuse rate limiting, and extension support.",
+				"About XenForo Post Scheduler", JOptionPane.INFORMATION_MESSAGE));
+		helpMenu.add(aboutItem);
 
-        menuBar.add(fileMenu);
-        menuBar.add(viewMenu);
-        menuBar.add(helpMenu);
+		menuBar.add(fileMenu);
+		menuBar.add(viewMenu);
+		menuBar.add(helpMenu);
 
-        return menuBar;
-    }
+		return menuBar;
+	}
 
-    private void editorRefresh() {
-        SwingUtilities.updateComponentTreeUI(this);
-    }
+	private void editorRefresh() {
+		SwingUtilities.updateComponentTreeUI(this);
+	}
 
-    public void openSettingsDialog() {
-        SettingsDialog dialog = new SettingsDialog(this, extensionManager, generalSettings);
-        dialog.setVisible(true);
-    }
+	public void openSettingsDialog() {
+		SettingsDialog dialog = new SettingsDialog(this, extensionManager, generalSettings);
+		dialog.setVisible(true);
+	}
 
-    private void toggleEngine() {
-        if (schedulerEngine.isRunning()) {
-            schedulerEngine.stop();
-        } else {
-            schedulerEngine.start();
-        }
-        updateEngineStatusUI();
-    }
+	private void toggleEngine() {
+		if (schedulerEngine.isRunning()) {
+			schedulerEngine.stop();
+		} else {
+			schedulerEngine.start();
+		}
+		updateEngineStatusUI();
+	}
 
-    private void updateEngineStatusUI() {
-        if (schedulerEngine.isRunning()) {
-            engineStatusLabel.setText("Engine: RUNNING (Automated polling & condition evaluations active)");
-            engineStatusLabel.setForeground(new Color(40, 167, 69));
-            engineToggleBtn.setText("Pause Scheduler Engine");
-        } else {
-            engineStatusLabel.setText("Engine: PAUSED (No background polling)");
-            engineStatusLabel.setForeground(new Color(220, 53, 69));
-            engineToggleBtn.setText("Resume Scheduler Engine");
-        }
-    }
+	private void updateEngineStatusUI() {
+		if (schedulerEngine.isRunning()) {
+			engineStatusLabel.setText("Engine: RUNNING (Automated polling & condition evaluations active)");
+			engineStatusLabel.setForeground(new Color(40, 167, 69));
+			engineToggleBtn.setText("Pause Scheduler Engine");
+		} else {
+			engineStatusLabel.setText("Engine: PAUSED (No background polling)");
+			engineStatusLabel.setForeground(new Color(220, 53, 69));
+			engineToggleBtn.setText("Resume Scheduler Engine");
+		}
+	}
 
-    /**
-     * Standalone launcher for WindowBuilder GUI design preview.
-     */
-    public static void main(String[] args) {
-        FlatDarkLaf.setup();
-        SwingUtilities.invokeLater(() -> {
-            MainFrame frame = new MainFrame();
-            frame.setVisible(true);
-        });
-    }
+	/**
+	 * Standalone launcher for WindowBuilder GUI design preview.
+	 */
+	public static void main(String[] args) {
+		FlatDarkLaf.setup();
+		SwingUtilities.invokeLater(() -> {
+			MainFrame frame = new MainFrame();
+			frame.setVisible(true);
+		});
+	}
 }

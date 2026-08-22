@@ -6,16 +6,16 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum JobPriority {
-    LOW("Low", 1),
-    NORMAL("Normal", 5),
-    HIGH("High", 10),
-    URGENT("Urgent", 20);
+	LOW("Low", 1),
+	NORMAL("Normal", 5),
+	HIGH("High", 10),
+	URGENT("Urgent", 20);
 
-    private final String displayName;
-    private final int weight;
+	private final String displayName;
+	private final int weight;
 
-    @Override
-    public String toString() {
-        return displayName;
-    }
+	@Override
+	public String toString() {
+		return displayName;
+	}
 }

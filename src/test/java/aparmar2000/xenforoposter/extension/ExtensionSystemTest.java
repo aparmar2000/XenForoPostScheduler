@@ -132,7 +132,7 @@ class ExtensionSystemTest {
 
 		ExtensionHolder holder = new ExtensionHolder(mockExt, extDir, mockMeta, mockContext);
 		assertFalse(holder.isInitialized());
-		
+
 		holder.initialize();
 		holder.setEnabled(true);
 
@@ -152,7 +152,7 @@ class ExtensionSystemTest {
 
 		ExtensionHolder holder = new ExtensionHolder(mockExt, extDir, mockMeta, mockContext);
 		assertFalse(holder.isEnabled());
-		
+
 		// Before initialization
 		holder.setEnabled(true);
 		assertTrue(holder.isEnabled());
@@ -161,7 +161,7 @@ class ExtensionSystemTest {
 		holder.setEnabled(false);
 		assertFalse(holder.isEnabled());
 		verify(mockExt, never()).onDisable();
-		
+
 		holder.initialize();
 		assertFalse(holder.isEnabled());
 		verify(mockExt, never()).onEnable();

@@ -36,201 +36,201 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j(access = AccessLevel.PACKAGE)
 public class ExtensionManager {
-    private final Path extensionsDir;
-    private final Path configFile;
-    private final Gson gson;
-    private final InternalExtensionContext.Factory contextFactory;
+	private final Path extensionsDir;
+	private final Path configFile;
+	private final Gson gson;
+	private final InternalExtensionContext.Factory contextFactory;
 
-    private final Map<String, ExtensionHolder> extensions = new LinkedHashMap<>();
-    private final List<ExtensionChangeListener> listeners = new ArrayList<>();
+	private final Map<String, ExtensionHolder> extensions = new LinkedHashMap<>();
+	private final List<ExtensionChangeListener> listeners = new ArrayList<>();
 
-    public interface ExtensionChangeListener {
-        void onExtensionsUpdated();
-    }
+	public interface ExtensionChangeListener {
+		void onExtensionsUpdated();
+	}
 
-    @Inject
-    public ExtensionManager(@Named("baseDataDir") @NonNull Path baseDataDir,
-    		@NonNull Gson gson,
-    		@NonNull InternalExtensionContext.Factory contextFactory) {
-        this.extensionsDir = baseDataDir.resolve("extensions");
-        this.configFile = baseDataDir.resolve("extensions_config.json");
-        this.gson = gson;
-        this.contextFactory = contextFactory;
-        try {
-            Files.createDirectories(extensionsDir);
-        } catch (Exception e) {
-            log.error("Failed to create extensions directory: {}", extensionsDir, e);
-        }
-    }
+	@Inject
+	public ExtensionManager(@Named("baseDataDir") @NonNull Path baseDataDir,
+			@NonNull Gson gson,
+			@NonNull InternalExtensionContext.Factory contextFactory) {
+		this.extensionsDir = baseDataDir.resolve("extensions");
+		this.configFile = baseDataDir.resolve("extensions_config.json");
+		this.gson = gson;
+		this.contextFactory = contextFactory;
+		try {
+			Files.createDirectories(extensionsDir);
+		} catch (Exception e) {
+			log.error("Failed to create extensions directory: {}", extensionsDir, e);
+		}
+	}
 
-    public void registerInternalExtension(@NonNull Extension extension) {
-        if (extensions.containsKey(extension.getId())) {
-            log.warn("Extension {} is already registered, skipping", extension.getId());
-            return;
-        }
-        
-        Path extDataDir = extensionsDir.resolve(extension.getId());
-        ExtensionHolder holder = new ExtensionHolder(extension, extDataDir,
-                ExtensionMetadata.builtIn(), contextFactory.create(extDataDir));
-        extensions.put(extension.getId(), holder);
-        setExtensionEnabled(extension.getId(), true);
-    }
-
-    public void loadAllExtensions() {
-        loadManagerConfiguration();
-
-        for (ExtensionHolder holder : extensions.values()) {
-            holder.initialize();
-        }
-        scanAndLoadExternalJars();
-
-        notifyListeners();
-    }
-
-    public void scanAndLoadExternalJars() {
-        if (!Files.exists(extensionsDir)) {
+	public void registerInternalExtension(@NonNull Extension extension) {
+		if (extensions.containsKey(extension.getId())) {
+			log.warn("Extension {} is already registered, skipping", extension.getId());
 			return;
 		}
 
-        File[] jarFiles = extensionsDir.toFile().listFiles((dir, name) -> name.toLowerCase().endsWith(".jar"));
-        if (jarFiles == null) {
+		Path extDataDir = extensionsDir.resolve(extension.getId());
+		ExtensionHolder holder = new ExtensionHolder(extension, extDataDir,
+				ExtensionMetadata.builtIn(), contextFactory.create(extDataDir));
+		extensions.put(extension.getId(), holder);
+		setExtensionEnabled(extension.getId(), true);
+	}
+
+	public void loadAllExtensions() {
+		loadManagerConfiguration();
+
+		for (ExtensionHolder holder : extensions.values()) {
+			holder.initialize();
+		}
+		scanAndLoadExternalJars();
+
+		notifyListeners();
+	}
+
+	public void scanAndLoadExternalJars() {
+		if (!Files.exists(extensionsDir)) {
 			return;
 		}
 
-        for (File jarFile : jarFiles) {
-            loadExtensionJar(jarFile);
-        }
-    }
+		File[] jarFiles = extensionsDir.toFile().listFiles((dir, name) -> name.toLowerCase().endsWith(".jar"));
+		if (jarFiles == null) {
+			return;
+		}
 
-    public boolean loadExtensionJar(@NonNull File jarFile) {
-        try {
-            URL jarUrl = jarFile.toURI().toURL();
-            URLClassLoader classLoader = new URLClassLoader(new URL[]{jarUrl}, getClass().getClassLoader());
+		for (File jarFile : jarFiles) {
+			loadExtensionJar(jarFile);
+		}
+	}
 
-            // Scan JAR entries to find classes implementing Extension
-            try (JarFile jar = new JarFile(jarFile)) {
-                for (Enumeration<JarEntry> entries = jar.entries(); entries.hasMoreElements();) {
-                    JarEntry entry = entries.nextElement();
-                    
-                    if (entry.getName().endsWith(".class") && !entry.isDirectory()) {
-                        String className = entry.getName().replace('/', '.').substring(0, entry.getName().length() - 6);
-                        try {
-                            Class<?> clazz = Class.forName(className, false, classLoader);
-                            
-                            if (Extension.class.isAssignableFrom(clazz) && !clazz.isInterface()) {
-                                Extension extInstance = (Extension) clazz.getDeclaredConstructor().newInstance();
-                                
-                                if (!extensions.containsKey(extInstance.getId())) {
-                                    Path extDataDir = extensionsDir.resolve(extInstance.getId());
-                                    ExtensionHolder holder = new ExtensionHolder(extInstance,
-                                            extDataDir,
-                                            ExtensionMetadata.fromJar(jarFile),
-                                            contextFactory.create(extDataDir));
-                                    holder.setClassLoader(classLoader);
-                                    extensions.put(extInstance.getId(), holder);
-                                    holder.initialize();
-                                    log.info("Loaded external extension: {} ({}) from {}",
-                                            extInstance.getName(), extInstance.getId(), jarFile.getName());
-                                }
-                            }
-                        } catch (Throwable t) {
-                            // Ignored: not an instantiable Extension class
-                        }
-                    }
-                }
-            }
-            saveManagerConfiguration();
-            notifyListeners();
-            return true;
-        } catch (Exception e) {
-            log.error("Failed to load extension jar from {}", jarFile.getAbsolutePath(), e);
-            return false;
-        }
-    }
+	public boolean loadExtensionJar(@NonNull File jarFile) {
+		try {
+			URL jarUrl = jarFile.toURI().toURL();
+			URLClassLoader classLoader = new URLClassLoader(new URL[]{jarUrl}, getClass().getClassLoader());
 
-    public void setExtensionEnabled(@NonNull String extensionId, boolean enabled) {
-        ExtensionHolder holder = extensions.get(extensionId);
-        if (holder != null && holder.isEnabled() != enabled) {
-            holder.setEnabled(enabled);
-            saveManagerConfiguration();
-            notifyListeners();
-        }
-    }
+			// Scan JAR entries to find classes implementing Extension
+			try (JarFile jar = new JarFile(jarFile)) {
+				for (Enumeration<JarEntry> entries = jar.entries(); entries.hasMoreElements();) {
+					JarEntry entry = entries.nextElement();
 
-    public ImmutableList<ExtensionHolder> getAllExtensions() {
-        return ImmutableList.sortedCopyOf(Comparator.comparing(h->h.getExtension().getId()), extensions.values());
-    }
+					if (entry.getName().endsWith(".class") && !entry.isDirectory()) {
+						String className = entry.getName().replace('/', '.').substring(0, entry.getName().length() - 6);
+						try {
+							Class<?> clazz = Class.forName(className, false, classLoader);
 
-    @Nullable
-    public ExtensionHolder getExtensionHolder(@NotNull String id) {
-        return extensions.get(id);
-    }
+							if (Extension.class.isAssignableFrom(clazz) && !clazz.isInterface()) {
+								Extension extInstance = (Extension) clazz.getDeclaredConstructor().newInstance();
 
-    public List<BbCodeToolbarItem> getActiveToolbarItems() {
-        List<BbCodeToolbarItem> items = new ArrayList<>();
-        for (ExtensionHolder holder : extensions.values()) {
-            if (holder.isEnabled()) {
-                items.addAll(holder.getContext().getRegisteredToolbarItems());
-            }
-        }
-        return items;
-    }
+								if (!extensions.containsKey(extInstance.getId())) {
+									Path extDataDir = extensionsDir.resolve(extInstance.getId());
+									ExtensionHolder holder = new ExtensionHolder(extInstance,
+											extDataDir,
+											ExtensionMetadata.fromJar(jarFile),
+											contextFactory.create(extDataDir));
+									holder.setClassLoader(classLoader);
+									extensions.put(extInstance.getId(), holder);
+									holder.initialize();
+									log.info("Loaded external extension: {} ({}) from {}",
+											extInstance.getName(), extInstance.getId(), jarFile.getName());
+								}
+							}
+						} catch (Throwable t) {
+							// Ignored: not an instantiable Extension class
+						}
+					}
+				}
+			}
+			saveManagerConfiguration();
+			notifyListeners();
+			return true;
+		} catch (Exception e) {
+			log.error("Failed to load extension jar from {}", jarFile.getAbsolutePath(), e);
+			return false;
+		}
+	}
 
-    public List<ConditionProvider> getActiveConditionProviders() {
-        List<ConditionProvider> providers = new ArrayList<>();
-        for (ExtensionHolder holder : extensions.values()) {
-            if (holder.isEnabled()) {
-                providers.addAll(holder.getContext().getRegisteredConditions());
-            }
-        }
-        return providers;
-    }
+	public void setExtensionEnabled(@NonNull String extensionId, boolean enabled) {
+		ExtensionHolder holder = extensions.get(extensionId);
+		if (holder != null && holder.isEnabled() != enabled) {
+			holder.setEnabled(enabled);
+			saveManagerConfiguration();
+			notifyListeners();
+		}
+	}
 
-    public void addChangeListener(@NonNull ExtensionChangeListener listener) {
-        listeners.add(listener);
-    }
+	public ImmutableList<ExtensionHolder> getAllExtensions() {
+		return ImmutableList.sortedCopyOf(Comparator.comparing(h->h.getExtension().getId()), extensions.values());
+	}
 
-    private void notifyListeners() {
-        for (ExtensionChangeListener listener : listeners) {
-            try {
-                listener.onExtensionsUpdated();
-            } catch (Exception e) {
-                log.error("Error invoking extension change listener", e);
-            }
-        }
-    }
+	@Nullable
+	public ExtensionHolder getExtensionHolder(@NotNull String id) {
+		return extensions.get(id);
+	}
 
-    private void loadManagerConfiguration() {        
-        try {
-            Map<String, Boolean> enabledStates = new HashMap<>();
-            if (configFile.toFile().canRead()) {
-    	        try (FileReader reader = new FileReader(configFile.toFile())) {
-    	        	val loadedEnabledStates = gson.fromJson(reader, new TypeToken<Map<String, Boolean>>() {});
-    	        	enabledStates.putAll(loadedEnabledStates);
-    	        }
-            }
-        	
-            for (Entry<String, ExtensionHolder> entry : extensions.entrySet()) {
-            	entry.getValue().setEnabled(enabledStates.getOrDefault(entry.getKey(), false));
-            }
-        } catch (Exception e) {
-            log.error("Failed to load extension manager configuration", e);
-        }
-    }
+	public List<BbCodeToolbarItem> getActiveToolbarItems() {
+		List<BbCodeToolbarItem> items = new ArrayList<>();
+		for (ExtensionHolder holder : extensions.values()) {
+			if (holder.isEnabled()) {
+				items.addAll(holder.getContext().getRegisteredToolbarItems());
+			}
+		}
+		return items;
+	}
 
-    public void saveManagerConfiguration() {
-        try {
-            Map<String, Boolean> enabledStates = new HashMap<>();
-            for (ExtensionHolder holder : extensions.values()) {
-                holder.getContext().saveSettings();
-                enabledStates.put(holder.getExtension().getId(), holder.isEnabled());
-            }
-            
-            try (FileWriter writer = new FileWriter(configFile.toFile())) {
-            	gson.toJson(enabledStates, writer);
-            }
-        } catch (Exception e) {
-            log.error("Failed to save extension manager configuration", e);
-        }
-    }
+	public List<ConditionProvider> getActiveConditionProviders() {
+		List<ConditionProvider> providers = new ArrayList<>();
+		for (ExtensionHolder holder : extensions.values()) {
+			if (holder.isEnabled()) {
+				providers.addAll(holder.getContext().getRegisteredConditions());
+			}
+		}
+		return providers;
+	}
+
+	public void addChangeListener(@NonNull ExtensionChangeListener listener) {
+		listeners.add(listener);
+	}
+
+	private void notifyListeners() {
+		for (ExtensionChangeListener listener : listeners) {
+			try {
+				listener.onExtensionsUpdated();
+			} catch (Exception e) {
+				log.error("Error invoking extension change listener", e);
+			}
+		}
+	}
+
+	private void loadManagerConfiguration() {
+		try {
+			Map<String, Boolean> enabledStates = new HashMap<>();
+			if (configFile.toFile().canRead()) {
+				try (FileReader reader = new FileReader(configFile.toFile())) {
+					val loadedEnabledStates = gson.fromJson(reader, new TypeToken<Map<String, Boolean>>() {});
+					enabledStates.putAll(loadedEnabledStates);
+				}
+			}
+
+			for (Entry<String, ExtensionHolder> entry : extensions.entrySet()) {
+				entry.getValue().setEnabled(enabledStates.getOrDefault(entry.getKey(), false));
+			}
+		} catch (Exception e) {
+			log.error("Failed to load extension manager configuration", e);
+		}
+	}
+
+	public void saveManagerConfiguration() {
+		try {
+			Map<String, Boolean> enabledStates = new HashMap<>();
+			for (ExtensionHolder holder : extensions.values()) {
+				holder.getContext().saveSettings();
+				enabledStates.put(holder.getExtension().getId(), holder.isEnabled());
+			}
+
+			try (FileWriter writer = new FileWriter(configFile.toFile())) {
+				gson.toJson(enabledStates, writer);
+			}
+		} catch (Exception e) {
+			log.error("Failed to save extension manager configuration", e);
+		}
+	}
 }

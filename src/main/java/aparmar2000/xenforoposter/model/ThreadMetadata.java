@@ -9,13 +9,13 @@ import lombok.Value;
 @Value
 @Builder(toBuilder = true)
 public class ThreadMetadata {
-    @NotNull String threadUrl;
-    @Nullable String threadId;
-    @NotNull String title;
-    boolean locked;
-    boolean canReply;
-    int replyCount;
-    @Nullable String threadAuthor;
-    @Nullable String xfToken;
-    @Builder.Default int totalPages = 1;
+	@NotNull String threadUrl;
+	@Nullable String threadId;
+	@NotNull String title;
+	boolean locked;
+	boolean canReply;
+	int replyCount;
+	@Nullable String threadAuthor;
+	@Nullable String xfToken;
+	@Builder.Default int totalPages = 1;
 }

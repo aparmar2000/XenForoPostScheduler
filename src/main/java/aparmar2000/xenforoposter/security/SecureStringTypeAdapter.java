@@ -18,33 +18,33 @@ import com.google.gson.JsonSerializer;
  * as encrypted ciphertext tokens via {@link CredentialEncryptionService}.
  */
 public class SecureStringTypeAdapter implements JsonSerializer<SecureString>, JsonDeserializer<SecureString> {
-    private final CredentialEncryptionService encryptionService;
+	private final CredentialEncryptionService encryptionService;
 
-    public SecureStringTypeAdapter(@NotNull CredentialEncryptionService encryptionService) {
-        this.encryptionService = encryptionService;
-    }
+	public SecureStringTypeAdapter(@NotNull CredentialEncryptionService encryptionService) {
+		this.encryptionService = encryptionService;
+	}
 
-    @Override
-    public JsonElement serialize(SecureString src, Type typeOfSrc, JsonSerializationContext context) {
-        if (src == null || src.getClearText() == null) {
-            return JsonNull.INSTANCE;
-        }
-        String encrypted = encryptionService.encrypt(src.getClearText());
-        return new JsonPrimitive(encrypted);
-    }
+	@Override
+	public JsonElement serialize(SecureString src, Type typeOfSrc, JsonSerializationContext context) {
+		if (src == null || src.getClearText() == null) {
+			return JsonNull.INSTANCE;
+		}
+		String encrypted = encryptionService.encrypt(src.getClearText());
+		return new JsonPrimitive(encrypted);
+	}
 
-    @Override
-    public SecureString deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-        if (json == null || json.isJsonNull()) {
-            return null;
-        }
+	@Override
+	public SecureString deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+		if (json == null || json.isJsonNull()) {
+			return null;
+		}
 
-        try {
-            String cipherText = json.getAsString();
-            String decrypted = encryptionService.decrypt(cipherText);
-            return SecureString.of(decrypted);
-        } catch (Exception e) {
-            throw new JsonParseException("Failed to decrypt SecureString payload", e);
-        }
-    }
+		try {
+			String cipherText = json.getAsString();
+			String decrypted = encryptionService.decrypt(cipherText);
+			return SecureString.of(decrypted);
+		} catch (Exception e) {
+			throw new JsonParseException("Failed to decrypt SecureString payload", e);
+		}
+	}
 }

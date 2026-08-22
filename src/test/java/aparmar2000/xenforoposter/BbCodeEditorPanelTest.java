@@ -15,43 +15,43 @@ import aparmar2000.xenforoposter.ui.UiPreviewHelper;
 
 class BbCodeEditorPanelTest {
 
-    private ExtensionManager extensionManager;
-    private BbCodeEditorPanel editorPanel;
+	private ExtensionManager extensionManager;
+	private BbCodeEditorPanel editorPanel;
 
-    @BeforeEach
-    void setUp() {
-        extensionManager = UiPreviewHelper.createPreviewExtensionManager();
-        editorPanel = new BbCodeEditorPanel(extensionManager);
-    }
+	@BeforeEach
+	void setUp() {
+		extensionManager = UiPreviewHelper.createPreviewExtensionManager();
+		editorPanel = new BbCodeEditorPanel(extensionManager);
+	}
 
-    @Test
-    @DisplayName("Toolbar should be properly built and contain buttons and containers")
-    void testToolbarStructure() {
-        assertNotNull(editorPanel.getTextArea());
-        assertNotNull(editorPanel.getPreviewPane());
-        assertNotNull(editorPanel.getContent());
+	@Test
+	@DisplayName("Toolbar should be properly built and contain buttons and containers")
+	void testToolbarStructure() {
+		assertNotNull(editorPanel.getTextArea());
+		assertNotNull(editorPanel.getPreviewPane());
+		assertNotNull(editorPanel.getContent());
 
-        // Set initial content and test content manipulation
-        editorPanel.setContent("Hello World");
-        assertEquals("Hello World", editorPanel.getContent());
+		// Set initial content and test content manipulation
+		editorPanel.setContent("Hello World");
+		assertEquals("Hello World", editorPanel.getContent());
 
-        // Test card transitions
-        assertFalse(editorPanel.isShowingPreview());
-        editorPanel.showPreviewCard();
-        assertTrue(editorPanel.isShowingPreview());
-        assertTrue(editorPanel.getPreviewPane().getText().contains("Hello World"));
+		// Test card transitions
+		assertFalse(editorPanel.isShowingPreview());
+		editorPanel.showPreviewCard();
+		assertTrue(editorPanel.isShowingPreview());
+		assertTrue(editorPanel.getPreviewPane().getText().contains("Hello World"));
 
-        editorPanel.showEditorCard();
-        assertFalse(editorPanel.isShowingPreview());
-    }
+		editorPanel.showEditorCard();
+		assertFalse(editorPanel.isShowingPreview());
+	}
 
-    @Test
-    @DisplayName("Extension toolbar items should be active in extension manager and update toolbar on change")
-    void testExtensionToolbarIntegration() {
-        List<BbCodeToolbarItem> activeItems = extensionManager.getActiveToolbarItems();
-        assertFalse(activeItems.isEmpty(), "Active extension items should not be empty");
+	@Test
+	@DisplayName("Extension toolbar items should be active in extension manager and update toolbar on change")
+	void testExtensionToolbarIntegration() {
+		List<BbCodeToolbarItem> activeItems = extensionManager.getActiveToolbarItems();
+		assertFalse(activeItems.isEmpty(), "Active extension items should not be empty");
 
-        // Rebuilding toolbar should succeed without exceptions
-        assertDoesNotThrow(() -> editorPanel.rebuildToolbar());
-    }
+		// Rebuilding toolbar should succeed without exceptions
+		assertDoesNotThrow(() -> editorPanel.rebuildToolbar());
+	}
 }

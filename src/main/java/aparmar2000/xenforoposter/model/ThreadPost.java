@@ -11,11 +11,11 @@ import lombok.Value;
 @Value
 @Builder(toBuilder = true)
 public class ThreadPost {
-    @NotNull String postId;
-    @NotNull String author;
-    @Nullable String authorId;
-    @NotNull Instant timestamp;
-    int postNumber;
-    int pageNumber;
-    @Nullable String content;
+	@NotNull String postId;
+	@NotNull String author;
+	@Nullable String authorId;
+	@NotNull Instant timestamp;
+	int postNumber;
+	int pageNumber;
+	@Nullable String content;
 }

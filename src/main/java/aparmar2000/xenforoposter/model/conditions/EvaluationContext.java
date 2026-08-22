@@ -14,17 +14,17 @@ import lombok.Value;
 @Value
 @Builder(toBuilder = true)
 public class EvaluationContext {
-    @NotNull Instant evaluationTime;
-    @NotNull ForumProfile forumProfile;
-    @Nullable ThreadMetadata threadMetadata;
-    @Nullable ScrapedThreadData threadData;
+	@NotNull Instant evaluationTime;
+	@NotNull ForumProfile forumProfile;
+	@Nullable ThreadMetadata threadMetadata;
+	@Nullable ScrapedThreadData threadData;
 
-    @Nullable
-    public ThreadMetadata getThreadMetadata() {
-        if (threadMetadata != null) {
-            return threadMetadata;
-        }
-        return threadData != null ? threadData.getMetadata() : null;
-    }
+	@Nullable
+	public ThreadMetadata getThreadMetadata() {
+		if (threadMetadata != null) {
+			return threadMetadata;
+		}
+		return threadData != null ? threadData.getMetadata() : null;
+	}
 }
 

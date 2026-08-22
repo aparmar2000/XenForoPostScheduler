@@ -11,20 +11,20 @@ import aparmar2000.xenforoposter.extension.toolbar.BbCodeToolbarItem;
 import aparmar2000.xenforoposter.settings.defs.SettingDefinition;
 
 public interface ExtensionContext {
-    void registerSetting(@NotNull SettingDefinition<?> setting);
-    <T> @Nullable T getSettingValue(@NotNull String key, @NotNull Class<T> type);
-    <T> void setSettingValue(@NotNull String key, @NotNull T value);
-    @NotNull List<SettingDefinition<?>> getRegisteredSettings();
+	void registerSetting(@NotNull SettingDefinition<?> setting);
+	<T> @Nullable T getSettingValue(@NotNull String key, @NotNull Class<T> type);
+	<T> void setSettingValue(@NotNull String key, @NotNull T value);
+	@NotNull List<SettingDefinition<?>> getRegisteredSettings();
 
-    void registerToolbarItem(@NotNull BbCodeToolbarItem item);
-    @NotNull List<BbCodeToolbarItem> getRegisteredToolbarItems();
+	void registerToolbarItem(@NotNull BbCodeToolbarItem item);
+	@NotNull List<BbCodeToolbarItem> getRegisteredToolbarItems();
 
-    void registerCondition(@NotNull ConditionProvider provider);
-    @NotNull List<ConditionProvider> getRegisteredConditions();
+	void registerCondition(@NotNull ConditionProvider provider);
+	@NotNull List<ConditionProvider> getRegisteredConditions();
 
-    @NotNull Path getDataDirectory();
+	@NotNull Path getDataDirectory();
 
-    void saveSettings();
-    void loadSettings();
-    void resetSettingsToDefaults();
+	void saveSettings();
+	void loadSettings();
+	void resetSettingsToDefaults();
 }

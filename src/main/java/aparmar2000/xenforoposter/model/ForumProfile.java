@@ -15,21 +15,21 @@ import lombok.Value;
 @Value
 @Builder(toBuilder = true)
 public class ForumProfile {
-    @NotNull @Builder.Default String id = UUID.randomUUID().toString();
-    @NotNull String name;
-    @NotNull String baseUrl;
-    @Nullable String username;
-    @Nullable @ToString.Exclude SecureString password;
-    @Nullable @ToString.Exclude Map<String, SecureString> sessionCookies;
-    @Nullable String customUserAgent;
+	@NotNull @Builder.Default String id = UUID.randomUUID().toString();
+	@NotNull String name;
+	@NotNull String baseUrl;
+	@Nullable String username;
+	@Nullable @ToString.Exclude SecureString password;
+	@Nullable @ToString.Exclude Map<String, SecureString> sessionCookies;
+	@Nullable String customUserAgent;
 
-    public String getDomain() {
-        try {
-            URI uri = URI.create(baseUrl);
-            String host = uri.getHost();
-            return host != null ? host.toLowerCase() : baseUrl;
-        } catch (Exception e) {
-            return baseUrl;
-        }
-    }
+	public String getDomain() {
+		try {
+			URI uri = URI.create(baseUrl);
+			String host = uri.getHost();
+			return host != null ? host.toLowerCase() : baseUrl;
+		} catch (Exception e) {
+			return baseUrl;
+		}
+	}
 }

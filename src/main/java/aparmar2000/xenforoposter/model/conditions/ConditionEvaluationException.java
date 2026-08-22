@@ -10,16 +10,16 @@ import lombok.NonNull;
  * condition evaluation.
  */
 public class ConditionEvaluationException extends RuntimeException {
-    private static final long serialVersionUID = 1L;
-    
-    @Getter
+	private static final long serialVersionUID = 1L;
+
+	@Getter
 	private final ConditionResult result;
 
-    public ConditionEvaluationException(@NonNull ConditionResult result) {
-        super(result.getMessage());
-    	if (result.isSatisfied()) {
-    		throw new IllegalArgumentException("Cannot construct evaluation exception from successful result!");
-    	}
-        this.result = result;
-    }
+	public ConditionEvaluationException(@NonNull ConditionResult result) {
+		super(result.getMessage());
+		if (result.isSatisfied()) {
+			throw new IllegalArgumentException("Cannot construct evaluation exception from successful result!");
+		}
+		this.result = result;
+	}
 }

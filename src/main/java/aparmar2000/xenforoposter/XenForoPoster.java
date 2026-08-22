@@ -15,20 +15,20 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class XenForoPoster {
-    public static void main(String[] args) {
-        FlatDarkLaf.setup();
+	public static void main(String[] args) {
+		FlatDarkLaf.setup();
 
-        Injector injector = Guice.createInjector(new AppModule());
+		Injector injector = Guice.createInjector(new AppModule());
 
-        ExtensionManager extensionManager = injector.getInstance(ExtensionManager.class);
-        extensionManager.registerInternalExtension(new FormattingToolsExtension());
-        extensionManager.registerInternalExtension(new TemplateInsertExtension());
-        extensionManager.loadAllExtensions();
+		ExtensionManager extensionManager = injector.getInstance(ExtensionManager.class);
+		extensionManager.registerInternalExtension(new FormattingToolsExtension());
+		extensionManager.registerInternalExtension(new TemplateInsertExtension());
+		extensionManager.loadAllExtensions();
 
-        SwingUtilities.invokeLater(() -> {
-            MainFrame mainFrame = injector.getInstance(MainFrame.class);
-            mainFrame.setVisible(true);
-            log.info("XenForo Post Scheduler UI initialized successfully with Guice DI");
-        });
-    }
+		SwingUtilities.invokeLater(() -> {
+			MainFrame mainFrame = injector.getInstance(MainFrame.class);
+			mainFrame.setVisible(true);
+			log.info("XenForo Post Scheduler UI initialized successfully with Guice DI");
+		});
+	}
 }

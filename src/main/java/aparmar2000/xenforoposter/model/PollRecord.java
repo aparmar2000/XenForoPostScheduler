@@ -10,18 +10,18 @@ import lombok.Value;
 @Value
 @Builder(toBuilder = true)
 public class PollRecord {
-    public enum PollType {
-        LOCAL_EVALUATION,
-        THREAD_FETCH,
-        POST_SUBMISSION
-    }
+	public enum PollType {
+		LOCAL_EVALUATION,
+		THREAD_FETCH,
+		POST_SUBMISSION
+	}
 
-    @NotNull
-    Instant timestamp;
-    @NotNull
-    PollType pollType;
-    boolean success;
-    @NotNull
-    String summary;
-    String details;
+	@NotNull
+	Instant timestamp;
+	@NotNull
+	PollType pollType;
+	boolean success;
+	@NotNull
+	String summary;
+	String details;
 }
