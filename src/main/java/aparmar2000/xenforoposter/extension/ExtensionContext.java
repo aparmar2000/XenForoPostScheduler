@@ -26,4 +26,5 @@ public interface ExtensionContext {
 
     void saveSettings();
     void loadSettings();
+    void resetSettingsToDefaults();
 }

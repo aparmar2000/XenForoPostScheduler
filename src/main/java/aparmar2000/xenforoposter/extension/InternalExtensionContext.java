@@ -73,6 +73,11 @@ public class InternalExtensionContext implements ExtensionContext {
     }
 
     @Override
+    public void resetSettingsToDefaults() {
+        settingsHolder.resetAllToDefaults();
+    }
+
+    @Override
     public void registerToolbarItem(@NotNull BbCodeToolbarItem item) {
         toolbarItems.add(Objects.requireNonNull(item, "item cannot be null"));
     }

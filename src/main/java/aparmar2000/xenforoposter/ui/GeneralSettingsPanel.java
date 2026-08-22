@@ -1,11 +1,8 @@
 package aparmar2000.xenforoposter.ui;
 
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
+import java.awt.GraphicsEnvironment;
 
-import javax.swing.JButton;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -35,26 +32,6 @@ public class GeneralSettingsPanel extends AbstractSettingsPanel {
         super("General Settings", "Application-wide configuration and preferences");
         this.generalSettings = generalSettings;
 
-        // Bottom Action Bar
-        JPanel actionBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
-
-        JButton reloadBtn = new JButton("Reload");
-        reloadBtn.setToolTipText("Reload saved settings from disk");
-        reloadBtn.addActionListener(e -> reloadSettings());
-        actionBar.add(reloadBtn);
-
-        JButton resetBtn = new JButton("Reset to Defaults");
-        resetBtn.setToolTipText("Reset all settings to their default values");
-        resetBtn.addActionListener(e -> resetDefaults());
-        actionBar.add(resetBtn);
-
-        JButton saveBtn = new JButton("Save Settings");
-        saveBtn.setToolTipText("Save current settings to disk");
-        saveBtn.addActionListener(e -> saveSettings());
-        actionBar.add(saveBtn);
-
-        add(actionBar, BorderLayout.SOUTH);
-
         populateSettings(generalSettings.getRegisteredSettings());
     }
 
@@ -79,25 +56,33 @@ public class GeneralSettingsPanel extends AbstractSettingsPanel {
         });
     }
 
+    @Override
     public void saveSettings() {
         generalSettings.save();
-        JOptionPane.showMessageDialog(this,
-                "General settings saved successfully.",
-                "Settings Saved",
-                JOptionPane.INFORMATION_MESSAGE);
+        if (!GraphicsEnvironment.isHeadless()) {
+            JOptionPane.showMessageDialog(this,
+                    "General settings saved successfully.",
+                    "Settings Saved",
+                    JOptionPane.INFORMATION_MESSAGE);
+        }
     }
 
+    @Override
     public void reloadSettings() {
         generalSettings.load();
         populateSettings(generalSettings.getRegisteredSettings());
     }
 
+    @Override
     public void resetDefaults() {
-        int choice = JOptionPane.showConfirmDialog(this,
-                "Are you sure you want to reset all settings to default values?",
-                "Reset Settings",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE);
+        int choice = JOptionPane.YES_OPTION;
+        if (!GraphicsEnvironment.isHeadless()) {
+            choice = JOptionPane.showConfirmDialog(this,
+                    "Are you sure you want to reset all settings to default values?",
+                    "Reset Settings",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE);
+        }
         if (choice == JOptionPane.YES_OPTION) {
             generalSettings.resetAllToDefaults();
             populateSettings(generalSettings.getRegisteredSettings());

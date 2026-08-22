@@ -1,6 +1,7 @@
 package aparmar2000.xenforoposter.ui;
 
 import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -12,12 +13,15 @@ import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
+import javax.swing.WindowConstants;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +38,14 @@ public abstract class AbstractSettingsPanel extends JPanel {
     protected final JLabel headerLabel;
     @Getter
     protected final JScrollPane scrollPane;
+    @Getter
+    protected final JPanel actionBar;
+    @Getter
+    protected JButton reloadBtn;
+    @Getter
+    protected JButton resetBtn;
+    @Getter
+    protected JButton saveBtn;
 
     public AbstractSettingsPanel() {
         this("Settings", "Configure settings below");
@@ -52,8 +64,109 @@ public abstract class AbstractSettingsPanel extends JPanel {
         scrollPane = new JScrollPane(formContainer);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
+        actionBar = createActionBar();
+
         add(headerLabel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
+        add(actionBar, BorderLayout.SOUTH);
+    }
+
+    protected JPanel createActionBar() {
+        JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
+
+        reloadBtn = new JButton("Revert");
+        reloadBtn.setToolTipText("Revert to saved settings");
+        reloadBtn.addActionListener(e -> reloadSettings());
+        bar.add(reloadBtn);
+
+        resetBtn = new JButton("Reset to Defaults");
+        resetBtn.setToolTipText("Reset all settings to their default values");
+        resetBtn.addActionListener(e -> resetDefaults());
+        bar.add(resetBtn);
+
+        saveBtn = new JButton("Save Settings");
+        saveBtn.setToolTipText("Save current settings to disk");
+        saveBtn.addActionListener(e -> saveSettings());
+        bar.add(saveBtn);
+
+        return bar;
+    }
+
+    @NotNull
+    public static JPanel createActionBar(@Nullable Runnable onRevert,
+                                         @Nullable Runnable onResetDefaults,
+                                         @Nullable Runnable onSave) {
+        JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
+
+        JButton revertButton = new JButton("Revert");
+        revertButton.setToolTipText("Revert to saved settings");
+        if (onRevert != null) {
+            revertButton.addActionListener(e -> onRevert.run());
+        } else {
+            revertButton.setEnabled(false);
+        }
+        bar.add(revertButton);
+
+        JButton resetButton = new JButton("Reset to Defaults");
+        resetButton.setToolTipText("Reset all settings to their default values");
+        if (onResetDefaults != null) {
+            resetButton.addActionListener(e -> onResetDefaults.run());
+        } else {
+            resetButton.setEnabled(false);
+        }
+        bar.add(resetButton);
+
+        JButton saveButton = new JButton("Save Settings");
+        saveButton.setToolTipText("Save current settings to disk");
+        if (onSave != null) {
+            saveButton.addActionListener(e -> onSave.run());
+        } else {
+            saveButton.setEnabled(false);
+        }
+        bar.add(saveButton);
+
+        return bar;
+    }
+
+    public JButton getRevertBtn() {
+        return reloadBtn;
+    }
+
+    public void setActionButtonsEnabled(boolean enabled) {
+        if (reloadBtn != null) {
+            reloadBtn.setEnabled(enabled);
+        }
+        if (resetBtn != null) {
+            resetBtn.setEnabled(enabled);
+        }
+        if (saveBtn != null) {
+            saveBtn.setEnabled(enabled);
+        }
+    }
+
+    public abstract void saveSettings();
+
+    public abstract void reloadSettings();
+
+    public void revertSettings() {
+        reloadSettings();
+    }
+
+    public abstract void resetDefaults();
+
+    @NotNull
+    public JFrame createStandaloneFrame(@NotNull String title, int width, int height) {
+        return wrapInFrame(this, title, width, height);
+    }
+
+    @NotNull
+    public static JFrame wrapInFrame(@NotNull AbstractSettingsPanel panel, @NotNull String title, int width, int height) {
+        JFrame frame = new JFrame(title);
+        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        frame.setSize(width, height);
+        frame.setLocationRelativeTo(null);
+        frame.getContentPane().add(panel);
+        return frame;
     }
 
     public void setHeaderText(@NotNull String text) {

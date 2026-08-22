@@ -303,6 +303,9 @@ class ExtensionSystemTest {
 		context.loadSettings();
 		verify(mockSettingsHolder).load();
 
+		context.resetSettingsToDefaults();
+		verify(mockSettingsHolder).resetAllToDefaults();
+
 		when(mockSettingsHolder.getRegisteredSettings()).thenReturn(ImmutableList.of(strDef));
 		assertEquals(1, context.getRegisteredSettings().size());
 		verify(mockSettingsHolder).getRegisteredSettings();

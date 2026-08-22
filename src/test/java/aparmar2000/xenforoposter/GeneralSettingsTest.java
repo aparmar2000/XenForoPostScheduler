@@ -3,8 +3,13 @@ package aparmar2000.xenforoposter;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.awt.GraphicsEnvironment;
 import java.nio.file.Path;
 import java.util.List;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 
 import aparmar2000.xenforoposter.settings.GeneralSettings;
 import aparmar2000.xenforoposter.settings.defs.SettingDefinition;
+import aparmar2000.xenforoposter.ui.AbstractSettingsPanel;
 import aparmar2000.xenforoposter.ui.GeneralSettingsPanel;
 
 class GeneralSettingsTest {
@@ -127,5 +133,55 @@ class GeneralSettingsTest {
         panel.reloadSettings();
         verify(mockSettings).load();
         verify(mockSettings, atLeastOnce()).getRegisteredSettings();
+
+        panel.revertSettings();
+        verify(mockSettings, times(2)).load();
+
+        panel.saveSettings();
+        verify(mockSettings).save();
+    }
+
+    @Test
+    @DisplayName("AbstractSettingsPanel action bar components and helper methods")
+    void testAbstractSettingsPanelActionBarAndHelpers() {
+        GeneralSettings settings = new GeneralSettings(null, null);
+        GeneralSettingsPanel panel = new GeneralSettingsPanel(settings);
+
+        assertNotNull(panel.getActionBar());
+        assertNotNull(panel.getReloadBtn());
+        assertSame(panel.getReloadBtn(), panel.getRevertBtn());
+        assertNotNull(panel.getResetBtn());
+        assertNotNull(panel.getSaveBtn());
+
+        assertTrue(panel.getReloadBtn().isEnabled());
+        panel.setActionButtonsEnabled(false);
+        assertFalse(panel.getReloadBtn().isEnabled());
+        assertFalse(panel.getResetBtn().isEnabled());
+        assertFalse(panel.getSaveBtn().isEnabled());
+
+        // Test static createActionBar helper
+        boolean[] called = new boolean[3];
+        JPanel customBar = AbstractSettingsPanel.createActionBar(
+                () -> called[0] = true,
+                () -> called[1] = true,
+                () -> called[2] = true
+        );
+        assertNotNull(customBar);
+        assertEquals(3, customBar.getComponentCount());
+
+        ((JButton) customBar.getComponent(0)).doClick();
+        ((JButton) customBar.getComponent(1)).doClick();
+        ((JButton) customBar.getComponent(2)).doClick();
+        assertTrue(called[0]);
+        assertTrue(called[1]);
+        assertTrue(called[2]);
+
+        // Test wrapInFrame / createStandaloneFrame
+        if (!GraphicsEnvironment.isHeadless()) {
+            JFrame frame = panel.createStandaloneFrame("Test Settings", 400, 300);
+            assertNotNull(frame);
+            assertEquals("Test Settings", frame.getTitle());
+            frame.dispose();
+        }
     }
 }
