@@ -2,6 +2,7 @@ package aparmar2000.xenforoposter.di;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -73,7 +74,7 @@ class GuiceInjectionTest {
 		SchedulerEngine schedulerEngine = injector.getInstance(SchedulerEngine.class);
 		assertNotNull(schedulerEngine);
 
-		if (!java.awt.GraphicsEnvironment.isHeadless()) {
+		if (!GraphicsEnvironment.isHeadless()) {
 			MainFrame mainFrame = injector.getInstance(MainFrame.class);
 			assertNotNull(mainFrame);
 		}

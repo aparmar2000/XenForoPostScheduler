@@ -72,17 +72,17 @@ public class ExtensionManager {
 		Path extDataDir = extensionsDir.resolve(extension.getId());
 		ExtensionHolder holder = new ExtensionHolder(extension, extDataDir,
 				ExtensionMetadata.builtIn(), contextFactory.create(extDataDir));
+		holder.setEnabled(true);
 		extensions.put(extension.getId(), holder);
-		setExtensionEnabled(extension.getId(), true);
 	}
 
 	public void loadAllExtensions() {
+		scanAndLoadExternalJars();
 		loadManagerConfiguration();
 
 		for (ExtensionHolder holder : extensions.values()) {
 			holder.initialize();
 		}
-		scanAndLoadExternalJars();
 
 		notifyListeners();
 	}
@@ -206,12 +206,15 @@ public class ExtensionManager {
 			if (configFile.toFile().canRead()) {
 				try (FileReader reader = new FileReader(configFile.toFile())) {
 					val loadedEnabledStates = gson.fromJson(reader, new TypeToken<Map<String, Boolean>>() {});
-					enabledStates.putAll(loadedEnabledStates);
+					if (loadedEnabledStates != null) {
+						enabledStates.putAll(loadedEnabledStates);
+					}
 				}
 			}
 
 			for (Entry<String, ExtensionHolder> entry : extensions.entrySet()) {
-				entry.getValue().setEnabled(enabledStates.getOrDefault(entry.getKey(), false));
+				boolean defaultEnabled = entry.getValue().getMetadata().isBuiltIn();
+				entry.getValue().setEnabled(enabledStates.getOrDefault(entry.getKey(), defaultEnabled));
 			}
 		} catch (Exception e) {
 			log.error("Failed to load extension manager configuration", e);
@@ -222,7 +225,6 @@ public class ExtensionManager {
 		try {
 			Map<String, Boolean> enabledStates = new HashMap<>();
 			for (ExtensionHolder holder : extensions.values()) {
-				holder.getContext().saveSettings();
 				enabledStates.put(holder.getExtension().getId(), holder.isEnabled());
 			}
 

@@ -188,4 +188,29 @@ class ExtensionSettingsTest {
 		panel.resetDefaults();
 		verify(mockContext).resetSettingsToDefaults();
 	}
+
+	@Test
+	@DisplayName("Saved extension settings should not be clobbered by default values on registration and loading")
+	void testSavedExtensionSettingsNotClobberedByDefaultValuesOnStartup() throws Exception {
+		// Pre-create extension directory and settings.json with non-default values before registering extension
+		Path extDataDir = tempDir.resolve("extensions").resolve("sample.settings.ext");
+		java.nio.file.Files.createDirectories(extDataDir);
+		Path settingsFile = extDataDir.resolve("settings.json");
+		java.nio.file.Files.writeString(settingsFile, "{\n  \"feature_enabled\": false,\n  \"api_endpoint\": \"https://saved.custom-api.org\"\n}\n", java.nio.charset.StandardCharsets.UTF_8);
+
+		// Register and load extension
+		extensionManager.registerInternalExtension(new SampleSettingsExtension());
+		extensionManager.loadAllExtensions();
+
+		ExtensionHolder holder = extensionManager.getExtensionHolder("sample.settings.ext");
+		assertNotNull(holder);
+
+		// Verify that loaded values correspond to the pre-existing saved file and were not clobbered by defaults (true and https://api.example.com)
+		Boolean boolVal = holder.getContext().getSettingValue("feature_enabled", Boolean.class);
+		String strVal = holder.getContext().getSettingValue("api_endpoint", String.class);
+
+		assertNotNull(boolVal);
+		assertFalse(boolVal, "Saved boolean setting value (false) should be preserved, not overwritten by default (true)");
+		assertEquals("https://saved.custom-api.org", strVal, "Saved string setting value should be preserved, not overwritten by default");
+	}
 }
