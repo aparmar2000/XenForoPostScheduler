@@ -3,7 +3,6 @@ package aparmar2000.xenforoposter.extension;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,34 +15,44 @@ import aparmar2000.xenforoposter.extension.condition.ConditionProvider;
 import aparmar2000.xenforoposter.extension.toolbar.BbCodeToolbarItem;
 import aparmar2000.xenforoposter.settings.SettingsHolder;
 import aparmar2000.xenforoposter.settings.defs.SettingDefinition;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinition;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinitionRegistry;
+import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinition;
+import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinitionRegistry;
 import lombok.Getter;
+import lombok.NonNull;
 
 public class InternalExtensionContext implements ExtensionContext {
+	@Getter
 	private final Path dataDirectory;
 	@Getter
 	private final SettingsHolder settingsHolder;
+	@Getter
+	private final BbCodeTagDefinitionRegistry bbCodeTagDefinitionRegistry;
+	@Getter
+	private final HtmlTagDefinitionRegistry htmlTagDefinitionRegistry;
 	private final List<BbCodeToolbarItem> toolbarItems = new ArrayList<>();
 	private final List<ConditionProvider> conditionProviders = new ArrayList<>();
 
 	public interface Factory {
-		InternalExtensionContext create(@NotNull Path dataDirectory);
+		InternalExtensionContext create(@NonNull Path dataDirectory);
 	}
 
 	@Inject
-	public InternalExtensionContext(@Assisted @NotNull Path dataDirectory, @NotNull SettingsHolder.Factory settingsHolderFactory) {
-		this(dataDirectory, Objects.requireNonNull(settingsHolderFactory, "settingsHolderFactory cannot be null")
-				.create(dataDirectory.resolve("settings.json")));
+	public InternalExtensionContext(@Assisted @NonNull Path dataDirectory,
+			@NonNull SettingsHolder.Factory settingsHolderFactory,
+			@NonNull BbCodeTagDefinitionRegistry bbCodeTagDefinitionRegistry,
+			@NonNull HtmlTagDefinitionRegistry htmlTagDefinitionRegistry) {
+		this.dataDirectory = dataDirectory;
+		this.settingsHolder = settingsHolderFactory.create(dataDirectory.resolve("settings.json"));
+		this.bbCodeTagDefinitionRegistry = bbCodeTagDefinitionRegistry;
+		this.htmlTagDefinitionRegistry = htmlTagDefinitionRegistry;
 	}
 
-	private InternalExtensionContext(@NotNull Path dataDirectory, @NotNull SettingsHolder settingsHolder) {
-		this.dataDirectory = Objects.requireNonNull(dataDirectory, "dataDirectory cannot be null");
-		this.settingsHolder = Objects.requireNonNull(settingsHolder, "settingsHolder cannot be null");
-	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public void registerSetting(@NotNull SettingDefinition<?> setting) {
-		Objects.requireNonNull(setting, "setting cannot be null");
+	public void registerSetting(@NonNull SettingDefinition<?> setting) {
 		settingsHolder.register((SettingDefinition<Object>) setting);
 	}
 
@@ -78,8 +87,8 @@ public class InternalExtensionContext implements ExtensionContext {
 	}
 
 	@Override
-	public void registerToolbarItem(@NotNull BbCodeToolbarItem item) {
-		toolbarItems.add(Objects.requireNonNull(item, "item cannot be null"));
+	public void registerToolbarItem(@NonNull BbCodeToolbarItem item) {
+		toolbarItems.add(item);
 	}
 
 	@Override
@@ -88,8 +97,8 @@ public class InternalExtensionContext implements ExtensionContext {
 	}
 
 	@Override
-	public void registerCondition(@NotNull ConditionProvider provider) {
-		conditionProviders.add(Objects.requireNonNull(provider, "provider cannot be null"));
+	public void registerCondition(@NonNull ConditionProvider provider) {
+		conditionProviders.add(provider);
 	}
 
 	@Override
@@ -98,7 +107,12 @@ public class InternalExtensionContext implements ExtensionContext {
 	}
 
 	@Override
-	public @NotNull Path getDataDirectory() {
-		return dataDirectory;
+	public void registerBbCodeTag(@NonNull BbCodeTagDefinition tagDefinition) {
+		bbCodeTagDefinitionRegistry.register(tagDefinition);
 	}
-}
+
+	@Override
+	public HtmlTagDefinition registerHtmlTag(@NonNull HtmlTagDefinition tagDefinition) {
+		return htmlTagDefinitionRegistry.register(tagDefinition);
+	}
+}

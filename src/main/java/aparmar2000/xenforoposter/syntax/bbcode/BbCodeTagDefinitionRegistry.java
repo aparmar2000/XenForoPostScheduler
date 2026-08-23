@@ -1,6 +1,8 @@
 package aparmar2000.xenforoposter.syntax.bbcode;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
@@ -9,17 +11,26 @@ import com.google.common.collect.ImmutableSet;
 
 import aparmar2000.xenforoposter.utils.CodePointTrie;
 import lombok.Locked;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class BbCodeTagDefinitionRegistry {
 	private final Set<BbCodeTagDefinition> registeredTagDefinitions = new HashSet<>();
+	private final Map<String, BbCodeTagDefinition> tagNameIndex = new HashMap<>();
 	@Nullable
 	private CodePointTrie<BbCodeTagDefinition> tagTrie = null;
 	
 	@Locked
 	public boolean register(BbCodeTagDefinition tagDefinition) {		
+		if (tagNameIndex.containsKey(tagDefinition.getTag().toLowerCase())) {
+			log.warn("Duplicate regsistration of BBCode tag '{}'", tagDefinition.getTag());
+			return false;
+		}
+		
 		boolean change = registeredTagDefinitions.add(tagDefinition);
 		if (change) {
 			markTreeDirty();
+			tagNameIndex.put(tagDefinition.getTag().toLowerCase(), tagDefinition);
 		}
 		
 		return change;
@@ -30,6 +41,7 @@ public class BbCodeTagDefinitionRegistry {
 		boolean change = registeredTagDefinitions.remove(tagDefinition);
 		if (change) {
 			markTreeDirty();
+			tagNameIndex.remove(tagDefinition.getTag().toLowerCase());
 		}
 		
 		return change;

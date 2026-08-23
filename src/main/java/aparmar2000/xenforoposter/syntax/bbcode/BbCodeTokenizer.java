@@ -25,6 +25,8 @@ public class BbCodeTokenizer {
 	protected static final int TAG_CLOSE_CODE_POINT = ']';
 	protected static final int TAG_PARAMETER_SEPERATOR_CODE_POINT = ' ';
 	protected static final int TAG_PARAMETER_VALUE_CODE_POINT = '=';
+	protected static final int QUOTE_SINGLE_CODE_POINT = '\'';
+	protected static final int QUOTE_DOUBLE_CODE_POINT = '"';
 	
 	protected final BbCodeTagDefinitionRegistry tagDefinitionRegistry;
 	
@@ -103,18 +105,21 @@ public class BbCodeTokenizer {
 		private String parameterKey = null;
 		@Nullable
 		private CodePointTrieNode<BbCodeTagDefinition> currentTagNode = null;
+		private int inQuoteChar = 0;
 		
 		protected void startTag() {
 			abortTag();
 			
 			buildingTag = true;
 			buildingEndingTag = false;
+			inQuoteChar = 0;
 			currentTagNode = tagDefinitionTrieRoot;
 		}
 		
 		protected void abortTag() {
 			buildingTag = false;
 			buildingEndingTag = false;
+			inQuoteChar = 0;
 			if (currentTextBuilder.length() > 0) {
 				tokens.add(new TextToken(currentTextBuilder.toString()));
 			}
@@ -149,6 +154,7 @@ public class BbCodeTokenizer {
 
 			buildingTag = false;
 			buildingEndingTag = false;
+			inQuoteChar = 0;
 			currentTextBuilder = new StringBuilder();
 			currentParameterChunkBuilder = null;
 			parameterKey = null;
@@ -186,28 +192,44 @@ public class BbCodeTokenizer {
 			}
 			
 			if (partialTagToken != null) {
-
-				if (codePoint == TAG_PARAMETER_SEPERATOR_CODE_POINT) {
-					if (parameterKey != null && currentParameterChunkBuilder != null && !currentParameterChunkBuilder.isEmpty()) {
-						partialTagToken.parameter(parameterKey, currentParameterChunkBuilder.toString());
+				if (inQuoteChar != 0) {
+					if (codePoint == inQuoteChar) {
+						inQuoteChar = 0;
 					}
-					
-					parameterKey = null;
-					currentParameterChunkBuilder = new StringBuilder();
-				} else if (codePoint == TAG_PARAMETER_VALUE_CODE_POINT) {
-					if (currentParameterChunkBuilder == null || currentParameterChunkBuilder.isEmpty()) {
-						parameterKey = BbCodeAstNodeTag.ROOT_PARAMETER_NAME;
-					} else {
-						parameterKey = currentParameterChunkBuilder.toString();
+					if (currentParameterChunkBuilder != null) {
+						currentParameterChunkBuilder.appendCodePoint(codePoint);
 					}
-					currentParameterChunkBuilder = new StringBuilder();
-				} else if (currentParameterChunkBuilder != null) {
-					currentParameterChunkBuilder.appendCodePoint(codePoint);
+				} else {
+					if (codePoint == QUOTE_SINGLE_CODE_POINT || codePoint == QUOTE_DOUBLE_CODE_POINT) {
+						if (currentParameterChunkBuilder == null || currentParameterChunkBuilder.length() == 0) {
+							inQuoteChar = codePoint;
+						}
+						if (currentParameterChunkBuilder != null) {
+							currentParameterChunkBuilder.appendCodePoint(codePoint);
+						}
+					} else if (codePoint == TAG_PARAMETER_SEPERATOR_CODE_POINT) {
+						if (parameterKey != null && currentParameterChunkBuilder != null && !currentParameterChunkBuilder.isEmpty()) {
+							partialTagToken.parameter(parameterKey, currentParameterChunkBuilder.toString());
+						}
+						
+						parameterKey = null;
+						currentParameterChunkBuilder = new StringBuilder();
+					} else if (codePoint == TAG_PARAMETER_VALUE_CODE_POINT) {
+						if (currentParameterChunkBuilder == null || currentParameterChunkBuilder.isEmpty()) {
+							parameterKey = BbCodeAstNodeTag.ROOT_PARAMETER_NAME;
+						} else {
+							parameterKey = currentParameterChunkBuilder.toString();
+						}
+						currentParameterChunkBuilder = new StringBuilder();
+					} else if (currentParameterChunkBuilder != null) {
+						currentParameterChunkBuilder.appendCodePoint(codePoint);
+					}
 				}
 			}
 			
 			return false;
 		}
+
 		
 		public void appendCodePoint(int codePoint) {
 			boolean codePointConsumed = false;

@@ -40,6 +40,12 @@ import aparmar2000.xenforoposter.model.conditions.TimeRangeCondition;
 import aparmar2000.xenforoposter.scheduler.SchedulerEngine;
 import aparmar2000.xenforoposter.security.SecureString;
 import aparmar2000.xenforoposter.settings.GeneralSettings;
+import aparmar2000.xenforoposter.syntax.DefaultTagDefinitions;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAstParser;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodePreviewRenderer;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinitionRegistry;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTokenizer;
+import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinitionRegistry;
 import aparmar2000.xenforoposter.web.XenForoWebClient;
 
 /**
@@ -48,6 +54,20 @@ import aparmar2000.xenforoposter.web.XenForoWebClient;
 public final class UiPreviewHelper {
 
 	private UiPreviewHelper() {}
+
+	/**
+	 * Creates a default {@link BbCodePreviewRenderer} configured with standard base tags for design preview.
+	 */
+	@NotNull
+	public static BbCodePreviewRenderer createPreviewBbCodePreviewRenderer() {
+		HtmlTagDefinitionRegistry htmlRegistry = new HtmlTagDefinitionRegistry();
+		BbCodeTagDefinitionRegistry bbRegistry = new BbCodeTagDefinitionRegistry();
+		DefaultTagDefinitions.registerBaseTags(bbRegistry, htmlRegistry);
+		BbCodeTokenizer tokenizer = new BbCodeTokenizer(bbRegistry);
+		BbCodeAstParser parser = new BbCodeAstParser(bbRegistry, tokenizer);
+		return new BbCodePreviewRenderer(parser);
+	}
+
 
 	/**
 	 * Creates a populated in-memory {@link SchedulerEngine} with sample profiles and jobs

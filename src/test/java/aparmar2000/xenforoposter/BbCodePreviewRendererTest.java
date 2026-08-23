@@ -6,15 +6,26 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import aparmar2000.xenforoposter.syntax.DefaultTagDefinitions;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAstParser;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodePreviewRenderer;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinitionRegistry;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTokenizer;
+import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinitionRegistry;
 
 class BbCodePreviewRendererTest {
 	private BbCodePreviewRenderer renderer;
 
 	@BeforeEach
 	void setUp() {
-		renderer = new BbCodePreviewRenderer();
+		HtmlTagDefinitionRegistry htmlRegistry = new HtmlTagDefinitionRegistry();
+		BbCodeTagDefinitionRegistry bbCodeRegistry = new BbCodeTagDefinitionRegistry();
+		DefaultTagDefinitions.registerBaseTags(bbCodeRegistry, htmlRegistry);
+		BbCodeTokenizer tokenizer = new BbCodeTokenizer(bbCodeRegistry);
+		BbCodeAstParser parser = new BbCodeAstParser(bbCodeRegistry, tokenizer);
+		renderer = new BbCodePreviewRenderer(parser);
 	}
+
 
 	@Test
 	@DisplayName("Should render headings with proper h1/h2/h3 tags")

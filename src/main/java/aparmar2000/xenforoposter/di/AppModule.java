@@ -23,13 +23,16 @@ import aparmar2000.xenforoposter.security.CredentialEncryptionService;
 import aparmar2000.xenforoposter.security.SafetyRateLimiter;
 import aparmar2000.xenforoposter.settings.GeneralSettings;
 import aparmar2000.xenforoposter.settings.SettingsHolder;
+import aparmar2000.xenforoposter.syntax.DefaultTagDefinitions;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAstParser;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodePreviewRenderer;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinitionRegistry;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTokenizer;
 import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinitionRegistry;
 import aparmar2000.xenforoposter.ui.MainFrame;
 import aparmar2000.xenforoposter.utils.GsonSupplier;
 import aparmar2000.xenforoposter.web.XenForoWebClient;
+
 
 /**
  * Guice configuration module for injecting shared dependencies, services, and UI components.
@@ -139,16 +142,29 @@ public class AppModule extends AbstractModule {
 	public MainFrame provideMainFrame(SchedulerEngine schedulerEngine,
 			ExtensionManager extensionManager,
 			XenForoWebClient webClient,
-			GeneralSettings generalSettings) {
-		return new MainFrame(schedulerEngine, extensionManager, webClient, generalSettings);
+			GeneralSettings generalSettings,
+			BbCodePreviewRenderer previewRenderer) {
+		return new MainFrame(schedulerEngine, extensionManager, webClient, generalSettings, previewRenderer);
 	}
 	
+	// --- Html AST
+
+	@Provides
+	@Singleton
+	public HtmlTagDefinitionRegistry provideHtmlTagDefinitionRegistry() {
+		HtmlTagDefinitionRegistry registry = new HtmlTagDefinitionRegistry();
+		DefaultTagDefinitions.registerBaseHtmlTags(registry);
+		return registry;
+	}
+
 	// --- BBCode Parsing
 
 	@Provides
 	@Singleton
-	public BbCodeTagDefinitionRegistry provideBbCodeTagDefinitionRegistry() {
-		return new BbCodeTagDefinitionRegistry();
+	public BbCodeTagDefinitionRegistry provideBbCodeTagDefinitionRegistry(HtmlTagDefinitionRegistry htmlTagDefinitionRegistry) {
+		BbCodeTagDefinitionRegistry registry = new BbCodeTagDefinitionRegistry();
+		DefaultTagDefinitions.registerBaseBbCodeTags(registry, htmlTagDefinitionRegistry);
+		return registry;
 	}
 
 	@Provides
@@ -163,12 +179,11 @@ public class AppModule extends AbstractModule {
 			BbCodeTokenizer bbCodeTokenizer) {
 		return new BbCodeAstParser(bbCodeTagDefinitionRegistry, bbCodeTokenizer);
 	}
-	
-	// --- Html AST
 
 	@Provides
 	@Singleton
-	public HtmlTagDefinitionRegistry provideHtmlTagDefinitionRegistry() {
-		return new HtmlTagDefinitionRegistry();
+	public BbCodePreviewRenderer provideBbCodePreviewRenderer(BbCodeAstParser parser) {
+		return new BbCodePreviewRenderer(parser);
 	}
 }
+

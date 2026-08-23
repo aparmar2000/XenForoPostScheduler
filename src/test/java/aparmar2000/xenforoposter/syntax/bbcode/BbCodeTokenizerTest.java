@@ -6,7 +6,9 @@ import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -424,4 +426,89 @@ class BbCodeTokenizerTest {
 		assertEquals(bTag, ((TagToken) tokens.get(4)).getTagDefinition());
 		assertTrue(((TagToken) tokens.get(4)).isEndingTag());
 	}
+
+	@Nested
+	@DisplayName("Quoted Parameter Value Tokenization Tests")
+	class QuotedParameterTests {
+
+		@Test
+		@DisplayName("tokenizeString preserves spaces in single-quoted root parameter")
+		void testSingleQuotedRootParameterWithSpaces() {
+			ImmutableList<ParsedToken> tokens = tokenizer.tokenizeString("[QUOTE='Admin User']Quoted text[/QUOTE]");
+
+			assertEquals(3, tokens.size());
+			assertTrue(tokens.get(0) instanceof TagToken);
+			TagToken quoteToken = (TagToken) tokens.get(0);
+			assertEquals("[QUOTE='Admin User']", quoteToken.getRawString());
+			assertEquals(quoteTag, quoteToken.getTagDefinition());
+			assertEquals("'Admin User'", quoteToken.getRootParameter());
+			assertFalse(quoteToken.isEndingTag());
+
+			assertEquals(new TextToken("Quoted text"), tokens.get(1));
+			assertTrue(tokens.get(2) instanceof TagToken);
+			assertTrue(((TagToken) tokens.get(2)).isEndingTag());
+		}
+
+		@Test
+		@DisplayName("tokenizeString preserves spaces in double-quoted root parameter")
+		void testDoubleQuotedRootParameterWithSpaces() {
+			ImmutableList<ParsedToken> tokens = tokenizer.tokenizeString("[QUOTE=\"Admin User\"]Quoted text[/QUOTE]");
+
+			assertEquals(3, tokens.size());
+			assertTrue(tokens.get(0) instanceof TagToken);
+			TagToken quoteToken = (TagToken) tokens.get(0);
+			assertEquals("[QUOTE=\"Admin User\"]", quoteToken.getRawString());
+			assertEquals(quoteTag, quoteToken.getTagDefinition());
+			assertEquals("\"Admin User\"", quoteToken.getRootParameter());
+		}
+
+		@Test
+		@DisplayName("tokenizeString preserves spaces in single- and double-quoted named parameters")
+		void testQuotedNamedParametersWithSpaces() {
+			ImmutableList<ParsedToken> tokens = tokenizer.tokenizeString("[QUOTE author='John Doe' title=\"Important Note\"]Body[/QUOTE]");
+
+			assertEquals(3, tokens.size());
+			assertTrue(tokens.get(0) instanceof TagToken);
+			TagToken quoteToken = (TagToken) tokens.get(0);
+			assertEquals("[QUOTE author='John Doe' title=\"Important Note\"]", quoteToken.getRawString());
+			assertEquals("'John Doe'", quoteToken.getParameterValue("author"));
+			assertEquals("\"Important Note\"", quoteToken.getParameterValue("title"));
+		}
+
+		@Test
+		@DisplayName("tokenizeString parses mixed quoted and unquoted parameters with root parameter")
+		void testMixedQuotedAndUnquotedParameters() {
+			ImmutableList<ParsedToken> tokens = tokenizer.tokenizeString("[ATTACH=full title=\"Screenshot of UI\" align=center]12345[/ATTACH]");
+
+			assertEquals(3, tokens.size());
+			assertTrue(tokens.get(0) instanceof TagToken);
+			TagToken attachToken = (TagToken) tokens.get(0);
+			assertEquals("full", attachToken.getRootParameter());
+			assertEquals("\"Screenshot of UI\"", attachToken.getParameterValue("title"));
+			assertEquals("center", attachToken.getParameterValue("align"));
+		}
+
+		@Test
+		@DisplayName("Unclosed quoted tag without closing bracket aborts and is treated as plain text")
+		void testUnclosedQuotedTagAborts() {
+			ImmutableList<ParsedToken> tokens = tokenizer.tokenizeString("Start [QUOTE='Unfinished quote text");
+
+			assertEquals(1, tokens.size());
+			assertTrue(tokens.get(0) instanceof TextToken);
+			assertEquals("Start [QUOTE='Unfinished quote text", tokens.get(0).getRawString());
+		}
+
+		@Test
+		@DisplayName("Empty quotes in parameters are tokenized correctly")
+		void testEmptyQuotesInParameters() {
+			ImmutableList<ParsedToken> tokens = tokenizer.tokenizeString("[QUOTE='' author=\"\"]Empty quotes[/QUOTE]");
+
+			assertEquals(3, tokens.size());
+			assertTrue(tokens.get(0) instanceof TagToken);
+			TagToken quoteToken = (TagToken) tokens.get(0);
+			assertEquals("''", quoteToken.getRootParameter());
+			assertEquals("\"\"", quoteToken.getParameterValue("author"));
+		}
+	}
 }
+
