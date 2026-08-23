@@ -17,10 +17,10 @@ import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeTag;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeText;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinition.HtmlNodeMapper.HtmlMappingException;
 import aparmar2000.xenforoposter.syntax.html.HtmlAst;
-import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeTag;
-import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeText;
 import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNode;
 import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeRoot;
+import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeTag;
+import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeText;
 import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinition;
 
 @DisplayName("BbCodeAst HTML Mapping Tests (mapToHtmlString and mapToHtmlAst)")

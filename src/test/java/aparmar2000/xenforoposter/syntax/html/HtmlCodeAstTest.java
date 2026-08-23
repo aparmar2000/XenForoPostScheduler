@@ -1,12 +1,6 @@
 package aparmar2000.xenforoposter.syntax.html;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,9 +9,9 @@ import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableMap;
 
+import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeRoot;
 import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeTag;
 import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeText;
-import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeRoot;
 import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinition.HtmlStringMapper.StringMappingException;
 
 @DisplayName("HtmlCodeAst Tests")

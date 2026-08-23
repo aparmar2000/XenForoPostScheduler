@@ -6,8 +6,8 @@ import com.google.common.collect.ImmutableMap;
 
 import aparmar2000.xenforoposter.syntax.AbstractAst;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinition.HtmlNodeMapper.HtmlMappingException;
-import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeTag;
 import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNode;
+import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeTag;
 import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinition;
 import lombok.Value;
 

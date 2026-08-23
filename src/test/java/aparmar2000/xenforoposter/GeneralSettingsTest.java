@@ -1,6 +1,7 @@
 package aparmar2000.xenforoposter;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.awt.GraphicsEnvironment;
