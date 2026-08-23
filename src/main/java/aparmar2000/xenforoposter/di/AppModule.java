@@ -15,6 +15,9 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 
+import aparmar2000.xenforoposter.bbcode.BbCodeAstParser;
+import aparmar2000.xenforoposter.bbcode.BbCodeTagDefinitionRegistry;
+import aparmar2000.xenforoposter.bbcode.BbCodeTokenizer;
 import aparmar2000.xenforoposter.extension.ExtensionManager;
 import aparmar2000.xenforoposter.extension.InternalExtensionContext;
 import aparmar2000.xenforoposter.scheduler.JobStorageService;
@@ -137,5 +140,26 @@ public class AppModule extends AbstractModule {
 			XenForoWebClient webClient,
 			GeneralSettings generalSettings) {
 		return new MainFrame(schedulerEngine, extensionManager, webClient, generalSettings);
+	}
+	
+	// --- BBCode Parsing
+
+	@Provides
+	@Singleton
+	public BbCodeTagDefinitionRegistry provideBbCodeTagDefinitionRegistry() {
+		return new BbCodeTagDefinitionRegistry();
+	}
+
+	@Provides
+	@Singleton
+	public BbCodeTokenizer provideBbCodeTokenizer(BbCodeTagDefinitionRegistry bbCodeTagDefinitionRegistry) {
+		return new BbCodeTokenizer(bbCodeTagDefinitionRegistry);
+	}
+
+	@Provides
+	@Singleton
+	public BbCodeAstParser provideBbCodeAstParser(BbCodeTagDefinitionRegistry bbCodeTagDefinitionRegistry,
+			BbCodeTokenizer bbCodeTokenizer) {
+		return new BbCodeAstParser(bbCodeTagDefinitionRegistry, bbCodeTokenizer);
 	}
 }
