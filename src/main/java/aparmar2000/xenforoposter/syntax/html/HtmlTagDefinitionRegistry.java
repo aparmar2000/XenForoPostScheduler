@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import lombok.Locked;
 import lombok.NonNull;
 
-public class HtmlCodeTagDefinitionRegistry {
+public class HtmlTagDefinitionRegistry {
 	private final Map<HtmlTagDefinition, HtmlTagDefinition> registeredTagDefinitions = new HashMap<>();
 	private final Map<String, HtmlTagDefinition> tagNameIndex = new HashMap<>();
 	

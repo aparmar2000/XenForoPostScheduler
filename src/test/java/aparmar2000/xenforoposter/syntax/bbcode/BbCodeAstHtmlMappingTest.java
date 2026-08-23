@@ -16,11 +16,11 @@ import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeRoot;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeTag;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeText;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinition.HtmlNodeMapper.HtmlMappingException;
-import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst;
-import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlAstNodeTag;
-import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlAstNodeText;
-import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlCodeAstNode;
-import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlCodeAstNodeRoot;
+import aparmar2000.xenforoposter.syntax.html.HtmlAst;
+import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeTag;
+import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeText;
+import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNode;
+import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeRoot;
 import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinition;
 
 @DisplayName("BbCodeAst HTML Mapping Tests (mapToHtmlString and mapToHtmlAst)")
@@ -359,14 +359,14 @@ class BbCodeAstHtmlMappingTest {
 			root.getChildren().add(bNode);
 
 			BbCodeAst ast = new BbCodeAst(root);
-			HtmlCodeAst htmlAst = ast.mapToHtmlAst();
+			HtmlAst htmlAst = ast.mapToHtmlAst();
 
 			assertNotNull(htmlAst);
-			HtmlCodeAstNodeRoot htmlRoot = htmlAst.getRootNode();
+			HtmlAstNodeRoot htmlRoot = htmlAst.getRootNode();
 			assertNotNull(htmlRoot);
 			assertEquals(1, htmlRoot.getChildren().size());
 
-			HtmlCodeAstNode child = htmlRoot.getChildren().get(0);
+			HtmlAstNode child = htmlRoot.getChildren().get(0);
 			assertTrue(child instanceof HtmlAstNodeTag);
 			HtmlAstNodeTag htmlTagNode = (HtmlAstNodeTag) child;
 			assertEquals(boldHtmlTag, htmlTagNode.getTagDefinition());
@@ -386,11 +386,11 @@ class BbCodeAstHtmlMappingTest {
 			root.getChildren().add(failNode);
 
 			BbCodeAst ast = new BbCodeAst(root);
-			HtmlCodeAst htmlAst = ast.mapToHtmlAst();
+			HtmlAst htmlAst = ast.mapToHtmlAst();
 
 			assertNotNull(htmlAst);
-			HtmlCodeAstNodeRoot htmlRoot = htmlAst.getRootNode();
-			List<HtmlCodeAstNode> children = htmlRoot.getChildren();
+			HtmlAstNodeRoot htmlRoot = htmlAst.getRootNode();
+			List<HtmlAstNode> children = htmlRoot.getChildren();
 			assertEquals(3, children.size());
 
 			assertTrue(children.get(0) instanceof HtmlAstNodeText);

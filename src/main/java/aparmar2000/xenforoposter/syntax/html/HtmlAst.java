@@ -12,34 +12,34 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.val;
 
-public class HtmlCodeAst extends AbstractAst<HtmlCodeAst.HtmlCodeAstNodeRoot> {
+public class HtmlAst extends AbstractAst<HtmlAst.HtmlAstNodeRoot> {
 
-    public HtmlCodeAst(HtmlCodeAstNodeRoot rootNode) {
+    public HtmlAst(HtmlAstNodeRoot rootNode) {
         super(rootNode);
     }
 
-    public static interface HtmlCodeAstNode extends AbstractAst.AstNode<HtmlCodeAstNode> {
+    public static interface HtmlAstNode extends AbstractAst.AstNode<HtmlAstNode> {
         @Override
-        public HtmlCodeAstNode clone();
+        public HtmlAstNode clone();
     }
 
     @Data
     @EqualsAndHashCode(callSuper = true)
-    public static abstract class HtmlCodeAstBranchNode extends AbstractAst.AstBranchNode<HtmlCodeAstNode> implements HtmlCodeAstNode {
+    public static abstract class HtmlAstBranchNode extends AbstractAst.AstBranchNode<HtmlAstNode> implements HtmlAstNode {
         @Override
-        public abstract HtmlCodeAstBranchNode clone();
+        public abstract HtmlAstBranchNode clone();
     }
 
     @Data
     @EqualsAndHashCode(callSuper = true)
-    public static abstract class HtmlCodeAstLeafNode extends AstLeafNode<HtmlCodeAstNode> implements HtmlCodeAstNode {
+    public static abstract class HtmlAstLeafNode extends AstLeafNode<HtmlAstNode> implements HtmlAstNode {
         @Override
-        public abstract HtmlCodeAstLeafNode clone();
+        public abstract HtmlAstLeafNode clone();
     }
 
 	@Data
 	@EqualsAndHashCode(callSuper = true)
-	public static class HtmlAstNodeText extends HtmlCodeAstLeafNode {
+	public static class HtmlAstNodeText extends HtmlAstLeafNode {
 		private final String text;
 		
 		public HtmlAstNodeText merge(HtmlAstNodeText other) {
@@ -56,7 +56,7 @@ public class HtmlCodeAst extends AbstractAst<HtmlCodeAst.HtmlCodeAstNodeRoot> {
 
 	@Data
 	@EqualsAndHashCode(callSuper = true)
-	public static class HtmlAstNodeTag extends HtmlCodeAstBranchNode {
+	public static class HtmlAstNodeTag extends HtmlAstBranchNode {
 		
 		private final String[] rawString;
 		private final HtmlTagDefinition tagDefinition;
@@ -87,10 +87,10 @@ public class HtmlCodeAst extends AbstractAst<HtmlCodeAst.HtmlCodeAstNodeRoot> {
 
 	@Data
 	@EqualsAndHashCode(callSuper = true)
-	public static class HtmlCodeAstNodeRoot extends HtmlCodeAstBranchNode {
+	public static class HtmlAstNodeRoot extends HtmlAstBranchNode {
 		@Override
-		public HtmlCodeAstNodeRoot clone() {
-			val clonedNode = new HtmlCodeAstNodeRoot();
+		public HtmlAstNodeRoot clone() {
+			val clonedNode = new HtmlAstNodeRoot();
 			clonedNode.getChildren().addAll(getChildren());
 			return clonedNode;
 		}
@@ -101,7 +101,7 @@ public class HtmlCodeAst extends AbstractAst<HtmlCodeAst.HtmlCodeAstNodeRoot> {
 		return mapNodeToHtmlString(escaper, rootNode, false);
 	}
 	
-	protected String mapNodeToHtmlString(Escaper escaper, HtmlCodeAstNode node, boolean innerTextRawRequired) {
+	protected String mapNodeToHtmlString(Escaper escaper, HtmlAstNode node, boolean innerTextRawRequired) {
 		if (node instanceof HtmlAstNodeText) {
 			String nodeText = ((HtmlAstNodeText) node).getText();
 			return innerTextRawRequired ? nodeText : escaper.escape(nodeText);
@@ -111,7 +111,7 @@ public class HtmlCodeAst extends AbstractAst<HtmlCodeAst.HtmlCodeAstNodeRoot> {
 		if (node instanceof HtmlAstNodeTag) { childrenInnerTextRawRequired |= ((HtmlAstNodeTag)node).getTagDefinition().isInnerTextRawRequired(); }
 		
 		StringBuilder innerHtmlStringBuilder = new StringBuilder();
-		for (HtmlCodeAstNode childNode : node.getChildren()) {
+		for (HtmlAstNode childNode : node.getChildren()) {
 			innerHtmlStringBuilder.append(mapNodeToHtmlString(escaper, childNode, childrenInnerTextRawRequired));
 		}
 		

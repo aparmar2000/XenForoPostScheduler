@@ -8,10 +8,10 @@ import com.google.common.collect.ImmutableMap;
 
 import aparmar2000.xenforoposter.syntax.AbstractAst;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinition.HtmlNodeMapper.HtmlMappingException;
-import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst;
-import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlAstNodeText;
-import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlCodeAstNode;
-import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlCodeAstNodeRoot;
+import aparmar2000.xenforoposter.syntax.html.HtmlAst;
+import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeText;
+import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNode;
+import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeRoot;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -118,12 +118,12 @@ public class BbCodeAst extends AbstractAst<BbCodeAst.BbCodeAstNodeRoot> {
 		return mapToHtmlAst().mapToHtmlString();
 	}
 	
-	public HtmlCodeAst mapToHtmlAst() {
-		return new HtmlCodeAst((HtmlCodeAstNodeRoot) mapNodeToHtmlNode(rootNode));
+	public HtmlAst mapToHtmlAst() {
+		return new HtmlAst((HtmlAstNodeRoot) mapNodeToHtmlNode(rootNode));
 	}
 	
-	protected HtmlCodeAstNodeRoot mapNodeToHtmlNode(BbCodeAstNodeRoot node) {
-		HtmlCodeAstNodeRoot newRoot = new HtmlCodeAstNodeRoot();
+	protected HtmlAstNodeRoot mapNodeToHtmlNode(BbCodeAstNodeRoot node) {
+		HtmlAstNodeRoot newRoot = new HtmlAstNodeRoot();
 
 		for (BbCodeAstNode childNode : node.getChildren()) {
 			newRoot.getChildren().addAll(mapNodeToHtmlNode(childNode));
@@ -132,12 +132,12 @@ public class BbCodeAst extends AbstractAst<BbCodeAst.BbCodeAstNodeRoot> {
 		return newRoot;
 	}
 	
-	protected List<HtmlCodeAstNode> mapNodeToHtmlNode(BbCodeAstNode node) {
+	protected List<HtmlAstNode> mapNodeToHtmlNode(BbCodeAstNode node) {
 		if (node instanceof BbCodeAstNodeText) {
 			return List.of( new HtmlAstNodeText(((BbCodeAstNodeText)node).getText()) );
 		}
 		
-		List<HtmlCodeAstNode> childNodes = new ArrayList<>();
+		List<HtmlAstNode> childNodes = new ArrayList<>();
 		for (BbCodeAstNode childNode : node.getChildren()) {
 			childNodes.addAll(mapNodeToHtmlNode(childNode));
 		}

@@ -6,8 +6,8 @@ import com.google.common.collect.ImmutableMap;
 
 import aparmar2000.xenforoposter.syntax.AbstractAst;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinition.HtmlNodeMapper.HtmlMappingException;
-import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlAstNodeTag;
-import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlCodeAstNode;
+import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeTag;
+import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNode;
 import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinition;
 import lombok.Value;
 
@@ -18,7 +18,7 @@ public class BbCodeTagDefinition {
 	
 	HtmlNodeMapper htmlMapper;
 	
-	public HtmlCodeAstNode mapNode(ImmutableMap<String, String> parameters, List<HtmlCodeAstNode> htmlChildNodes) throws HtmlMappingException {
+	public HtmlAstNode mapNode(ImmutableMap<String, String> parameters, List<HtmlAstNode> htmlChildNodes) throws HtmlMappingException {
 		return htmlMapper.mapNode(this, parameters, htmlChildNodes);
 	}
 	
@@ -36,7 +36,7 @@ public class BbCodeTagDefinition {
 			private static final long serialVersionUID = -5694183233110625711L;			
 		}
 		
-		HtmlCodeAstNode mapNode(BbCodeTagDefinition tagDefinition, ImmutableMap<String, String> parameters, List<HtmlCodeAstNode> htmlChildNodes) throws HtmlMappingException;
+		HtmlAstNode mapNode(BbCodeTagDefinition tagDefinition, ImmutableMap<String, String> parameters, List<HtmlAstNode> htmlChildNodes) throws HtmlMappingException;
 
 		public static HtmlNodeMapper simpleHtmlSingularTag(HtmlTagDefinition htmlTag) {
 			return (tagDef, params, htmlChildNodes) -> new HtmlAstNodeTag(htmlTag, ImmutableMap.of());

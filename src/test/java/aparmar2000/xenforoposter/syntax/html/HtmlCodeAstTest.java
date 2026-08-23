@@ -15,9 +15,9 @@ import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableMap;
 
-import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlAstNodeTag;
-import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlAstNodeText;
-import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlCodeAstNodeRoot;
+import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeTag;
+import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeText;
+import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeRoot;
 import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinition.HtmlStringMapper.StringMappingException;
 
 @DisplayName("HtmlCodeAst Tests")
@@ -110,14 +110,14 @@ class HtmlCodeAstTest {
 		@Test
 		@DisplayName("HtmlCodeAstNodeRoot children management and clone")
 		void testRootNode() {
-			HtmlCodeAstNodeRoot root = new HtmlCodeAstNodeRoot();
+			HtmlAstNodeRoot root = new HtmlAstNodeRoot();
 			assertFalse(root.hasChildren());
 			assertTrue(root.getChildren().isEmpty());
 
 			root.getChildren().add(new HtmlAstNodeText("text"));
 			assertTrue(root.hasChildren());
 
-			HtmlCodeAstNodeRoot clonedRoot = root.clone();
+			HtmlAstNodeRoot clonedRoot = root.clone();
 			assertEquals(root, clonedRoot);
 			assertEquals(root.hashCode(), clonedRoot.hashCode());
 			assertNotSame(root, clonedRoot);
@@ -128,8 +128,8 @@ class HtmlCodeAstTest {
 		@Test
 		@DisplayName("HtmlCodeAst wrapper returns root node")
 		void testHtmlCodeAstWrapper() {
-			HtmlCodeAstNodeRoot root = new HtmlCodeAstNodeRoot();
-			HtmlCodeAst ast = new HtmlCodeAst(root);
+			HtmlAstNodeRoot root = new HtmlAstNodeRoot();
+			HtmlAst ast = new HtmlAst(root);
 			assertSame(root, ast.getRootNode());
 		}
 	}
@@ -141,37 +141,37 @@ class HtmlCodeAstTest {
 		@Test
 		@DisplayName("Empty root node maps to empty string")
 		void testEmptyAst() {
-			HtmlCodeAstNodeRoot root = new HtmlCodeAstNodeRoot();
-			HtmlCodeAst ast = new HtmlCodeAst(root);
+			HtmlAstNodeRoot root = new HtmlAstNodeRoot();
+			HtmlAst ast = new HtmlAst(root);
 			assertEquals("", ast.mapToHtmlString());
 		}
 
 		@Test
 		@DisplayName("Plain text without special characters maps as-is")
 		void testPlainText() {
-			HtmlCodeAstNodeRoot root = new HtmlCodeAstNodeRoot();
+			HtmlAstNodeRoot root = new HtmlAstNodeRoot();
 			root.getChildren().add(new HtmlAstNodeText("Hello world 123"));
-			HtmlCodeAst ast = new HtmlCodeAst(root);
+			HtmlAst ast = new HtmlAst(root);
 			assertEquals("Hello world 123", ast.mapToHtmlString());
 		}
 
 		@Test
 		@DisplayName("Special HTML characters (<, >, &, \", ') are escaped in normal text nodes")
 		void testSpecialCharactersEscaped() {
-			HtmlCodeAstNodeRoot root = new HtmlCodeAstNodeRoot();
+			HtmlAstNodeRoot root = new HtmlAstNodeRoot();
 			root.getChildren().add(new HtmlAstNodeText("AT&T <tag> \"quotes\" 'single'"));
-			HtmlCodeAst ast = new HtmlCodeAst(root);
+			HtmlAst ast = new HtmlAst(root);
 			assertEquals("AT&amp;T &lt;tag&gt; &quot;quotes&quot; &#39;single&#39;", ast.mapToHtmlString());
 		}
 
 		@Test
 		@DisplayName("Multiple consecutive text nodes map to concatenated escaped text")
 		void testMultipleTextNodes() {
-			HtmlCodeAstNodeRoot root = new HtmlCodeAstNodeRoot();
+			HtmlAstNodeRoot root = new HtmlAstNodeRoot();
 			root.getChildren().add(new HtmlAstNodeText("Line 1 & "));
 			root.getChildren().add(new HtmlAstNodeText("Line 2 < "));
 			root.getChildren().add(new HtmlAstNodeText("Line 3"));
-			HtmlCodeAst ast = new HtmlCodeAst(root);
+			HtmlAst ast = new HtmlAst(root);
 			assertEquals("Line 1 &amp; Line 2 &lt; Line 3", ast.mapToHtmlString());
 		}
 	}
@@ -183,63 +183,63 @@ class HtmlCodeAstTest {
 		@Test
 		@DisplayName("Single wrapper tag maps children inside tag")
 		void testSimpleWrapperTag() {
-			HtmlCodeAstNodeRoot root = new HtmlCodeAstNodeRoot();
+			HtmlAstNodeRoot root = new HtmlAstNodeRoot();
 			HtmlAstNodeTag tag = new HtmlAstNodeTag(bTag, ImmutableMap.of());
 			tag.getChildren().add(new HtmlAstNodeText("Bold & Strong"));
 			root.getChildren().add(tag);
 
-			HtmlCodeAst ast = new HtmlCodeAst(root);
+			HtmlAst ast = new HtmlAst(root);
 			assertEquals("<b>Bold &amp; Strong</b>", ast.mapToHtmlString());
 		}
 
 		@Test
 		@DisplayName("Singular self-closing tag maps correctly")
 		void testSingularTag() {
-			HtmlCodeAstNodeRoot root = new HtmlCodeAstNodeRoot();
+			HtmlAstNodeRoot root = new HtmlAstNodeRoot();
 			HtmlAstNodeTag tag = new HtmlAstNodeTag(hrTag, ImmutableMap.of());
 			root.getChildren().add(tag);
 
-			HtmlCodeAst ast = new HtmlCodeAst(root);
+			HtmlAst ast = new HtmlAst(root);
 			assertEquals("<hr/>", ast.mapToHtmlString());
 		}
 
 		@Test
 		@DisplayName("Tag with parameters maps using parameters")
 		void testTagWithParameters() {
-			HtmlCodeAstNodeRoot root = new HtmlCodeAstNodeRoot();
+			HtmlAstNodeRoot root = new HtmlAstNodeRoot();
 			HtmlAstNodeTag tag = new HtmlAstNodeTag(styleTag, ImmutableMap.of("color", "blue"));
 			tag.getChildren().add(new HtmlAstNodeText("Blue text"));
 			root.getChildren().add(tag);
 
-			HtmlCodeAst ast = new HtmlCodeAst(root);
+			HtmlAst ast = new HtmlAst(root);
 			assertEquals("<span style=\"color: blue;\">Blue text</span>", ast.mapToHtmlString());
 		}
 
 		@Test
 		@DisplayName("Hierarchically nested tags map properly")
 		void testNestedTags() {
-			HtmlCodeAstNodeRoot root = new HtmlCodeAstNodeRoot();
+			HtmlAstNodeRoot root = new HtmlAstNodeRoot();
 			HtmlAstNodeTag bNode = new HtmlAstNodeTag(bTag, ImmutableMap.of());
 			HtmlAstNodeTag iNode = new HtmlAstNodeTag(iTag, ImmutableMap.of());
 			iNode.getChildren().add(new HtmlAstNodeText("Nested & Formatted"));
 			bNode.getChildren().add(iNode);
 			root.getChildren().add(bNode);
 
-			HtmlCodeAst ast = new HtmlCodeAst(root);
+			HtmlAst ast = new HtmlAst(root);
 			assertEquals("<b><i>Nested &amp; Formatted</i></b>", ast.mapToHtmlString());
 		}
 
 		@Test
 		@DisplayName("Mixed text and tag siblings map in sequence")
 		void testMixedSiblings() {
-			HtmlCodeAstNodeRoot root = new HtmlCodeAstNodeRoot();
+			HtmlAstNodeRoot root = new HtmlAstNodeRoot();
 			root.getChildren().add(new HtmlAstNodeText("Start < "));
 			HtmlAstNodeTag bNode = new HtmlAstNodeTag(bTag, ImmutableMap.of());
 			bNode.getChildren().add(new HtmlAstNodeText("Bold"));
 			root.getChildren().add(bNode);
 			root.getChildren().add(new HtmlAstNodeText(" > End"));
 
-			HtmlCodeAst ast = new HtmlCodeAst(root);
+			HtmlAst ast = new HtmlAst(root);
 			assertEquals("Start &lt; <b>Bold</b> &gt; End", ast.mapToHtmlString());
 		}
 	}
@@ -251,33 +251,33 @@ class HtmlCodeAstTest {
 		@Test
 		@DisplayName("Tag with innerTextRawRequired=true preserves unescaped text")
 		void testRawTextPreservedInCodeTag() {
-			HtmlCodeAstNodeRoot root = new HtmlCodeAstNodeRoot();
+			HtmlAstNodeRoot root = new HtmlAstNodeRoot();
 			HtmlAstNodeTag tag = new HtmlAstNodeTag(codeTag, ImmutableMap.of());
 			tag.getChildren().add(new HtmlAstNodeText("int x = 5 & 3 < 10;"));
 			root.getChildren().add(tag);
 
-			HtmlCodeAst ast = new HtmlCodeAst(root);
+			HtmlAst ast = new HtmlAst(root);
 			assertEquals("<code>int x = 5 & 3 < 10;</code>", ast.mapToHtmlString());
 		}
 
 		@Test
 		@DisplayName("Nested tags inside innerTextRawRequired=true propagate raw requirement to children")
 		void testNestedRawRequirementPropagation() {
-			HtmlCodeAstNodeRoot root = new HtmlCodeAstNodeRoot();
+			HtmlAstNodeRoot root = new HtmlAstNodeRoot();
 			HtmlAstNodeTag codeNode = new HtmlAstNodeTag(codeTag, ImmutableMap.of());
 			HtmlAstNodeTag bNode = new HtmlAstNodeTag(bTag, ImmutableMap.of());
 			bNode.getChildren().add(new HtmlAstNodeText("x < y & a > b"));
 			codeNode.getChildren().add(bNode);
 			root.getChildren().add(codeNode);
 
-			HtmlCodeAst ast = new HtmlCodeAst(root);
+			HtmlAst ast = new HtmlAst(root);
 			assertEquals("<code><b>x < y & a > b</b></code>", ast.mapToHtmlString());
 		}
 
 		@Test
 		@DisplayName("Raw requirement is isolated to innerTextRawRequired tags and does not affect siblings")
 		void testRawRequirementSiblingIsolation() {
-			HtmlCodeAstNodeRoot root = new HtmlCodeAstNodeRoot();
+			HtmlAstNodeRoot root = new HtmlAstNodeRoot();
 			HtmlAstNodeTag codeNode = new HtmlAstNodeTag(codeTag, ImmutableMap.of());
 			codeNode.getChildren().add(new HtmlAstNodeText("a < b"));
 			root.getChildren().add(codeNode);
@@ -286,7 +286,7 @@ class HtmlCodeAstTest {
 			bNode.getChildren().add(new HtmlAstNodeText("c < d"));
 			root.getChildren().add(bNode);
 
-			HtmlCodeAst ast = new HtmlCodeAst(root);
+			HtmlAst ast = new HtmlAst(root);
 			assertEquals("<code>a < b</code><b>c &lt; d</b>", ast.mapToHtmlString());
 		}
 	}
@@ -298,25 +298,25 @@ class HtmlCodeAstTest {
 		@Test
 		@DisplayName("Tag mapping failure falls back to rawString and inner content")
 		void testStringMappingExceptionFallbackWithCustomRawString() {
-			HtmlCodeAstNodeRoot root = new HtmlCodeAstNodeRoot();
+			HtmlAstNodeRoot root = new HtmlAstNodeRoot();
 			String[] rawString = new String[] {"<raw_open>", "</raw_close>"};
 			HtmlAstNodeTag errorNode = new HtmlAstNodeTag(rawString, errorTag, ImmutableMap.of());
 			errorNode.getChildren().add(new HtmlAstNodeText("Inner Text"));
 			root.getChildren().add(errorNode);
 
-			HtmlCodeAst ast = new HtmlCodeAst(root);
+			HtmlAst ast = new HtmlAst(root);
 			assertEquals("<raw_open>Inner Text</raw_close>", ast.mapToHtmlString());
 		}
 
 		@Test
 		@DisplayName("Tag mapping failure with default empty rawString renders only inner content")
 		void testStringMappingExceptionFallbackWithDefaultRawString() {
-			HtmlCodeAstNodeRoot root = new HtmlCodeAstNodeRoot();
+			HtmlAstNodeRoot root = new HtmlAstNodeRoot();
 			HtmlAstNodeTag errorNode = new HtmlAstNodeTag(errorTag, ImmutableMap.of());
 			errorNode.getChildren().add(new HtmlAstNodeText("Fallback Text"));
 			root.getChildren().add(errorNode);
 
-			HtmlCodeAst ast = new HtmlCodeAst(root);
+			HtmlAst ast = new HtmlAst(root);
 			assertEquals("Fallback Text", ast.mapToHtmlString());
 		}
 	}
