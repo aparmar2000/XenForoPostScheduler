@@ -52,4 +52,13 @@ public abstract class AbstractAst<N extends AbstractAst.AstNode<?>> {
 
     @Getter
     protected final N rootNode;
+    
+    public static <sN extends AstNode<sN>, rN extends AstBranchNode<sN>> rN wrap(rN outer, sN inner) {
+    	outer.getChildren().add(inner);
+    	return outer;
+    }
+    public static <sN extends AstNode<sN>, rN extends AstBranchNode<sN>> rN wrap(rN outer, List<sN> inner) {
+    	outer.getChildren().addAll(inner);
+    	return outer;
+    }
 }

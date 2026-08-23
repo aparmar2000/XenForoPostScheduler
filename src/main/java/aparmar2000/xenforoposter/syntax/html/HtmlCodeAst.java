@@ -3,12 +3,13 @@ package aparmar2000.xenforoposter.syntax.html;
 import java.util.Arrays;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.escape.Escaper;
+import com.google.common.html.HtmlEscapers;
 
 import aparmar2000.xenforoposter.syntax.AbstractAst;
-import lombok.AccessLevel;
+import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinition.HtmlStringMapper.StringMappingException;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
 import lombok.val;
 
 public class HtmlCodeAst extends AbstractAst<HtmlCodeAst.HtmlCodeAstNodeRoot> {
@@ -37,20 +38,19 @@ public class HtmlCodeAst extends AbstractAst<HtmlCodeAst.HtmlCodeAstNodeRoot> {
     }
 
 	@Data
-	@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 	@EqualsAndHashCode(callSuper = true)
-	public static class HtmlCodeAstNodeText extends HtmlCodeAstLeafNode {
+	public static class HtmlAstNodeText extends HtmlCodeAstLeafNode {
 		private final String text;
 		
-		public HtmlCodeAstNodeText merge(HtmlCodeAstNodeText other) {
-			HtmlCodeAstNodeText mergedNode = new HtmlCodeAstNodeText(text + other.getText());
+		public HtmlAstNodeText merge(HtmlAstNodeText other) {
+			HtmlAstNodeText mergedNode = new HtmlAstNodeText(text + other.getText());
 			
 			return mergedNode;
 		}
 
 		@Override
-		public HtmlCodeAstNodeText clone() {
-			return new HtmlCodeAstNodeText(text);
+		public HtmlAstNodeText clone() {
+			return new HtmlAstNodeText(text);
 		}
 	}
 
@@ -86,7 +86,6 @@ public class HtmlCodeAst extends AbstractAst<HtmlCodeAst.HtmlCodeAstNodeRoot> {
 	}
 
 	@Data
-	@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 	@EqualsAndHashCode(callSuper = true)
 	public static class HtmlCodeAstNodeRoot extends HtmlCodeAstBranchNode {
 		@Override
@@ -95,5 +94,35 @@ public class HtmlCodeAst extends AbstractAst<HtmlCodeAst.HtmlCodeAstNodeRoot> {
 			clonedNode.getChildren().addAll(getChildren());
 			return clonedNode;
 		}
+	}
+	
+	public String mapToHtmlString() {
+		val escaper = HtmlEscapers.htmlEscaper();
+		return mapNodeToHtmlString(escaper, rootNode, false);
+	}
+	
+	protected String mapNodeToHtmlString(Escaper escaper, HtmlCodeAstNode node, boolean innerTextRawRequired) {
+		if (node instanceof HtmlAstNodeText) {
+			String nodeText = ((HtmlAstNodeText) node).getText();
+			return innerTextRawRequired ? nodeText : escaper.escape(nodeText);
+		}
+		
+		boolean childrenInnerTextRawRequired = innerTextRawRequired;
+		if (node instanceof HtmlAstNodeTag) { childrenInnerTextRawRequired |= ((HtmlAstNodeTag)node).getTagDefinition().isInnerTextRawRequired(); }
+		
+		StringBuilder innerHtmlStringBuilder = new StringBuilder();
+		for (HtmlCodeAstNode childNode : node.getChildren()) {
+			innerHtmlStringBuilder.append(mapNodeToHtmlString(escaper, childNode, childrenInnerTextRawRequired));
+		}
+		
+		if (node instanceof HtmlAstNodeTag) {
+			HtmlAstNodeTag tagNode = (HtmlAstNodeTag) node;
+			try {
+				return tagNode.getTagDefinition().mapNode(tagNode.getParameters(), innerHtmlStringBuilder.toString());
+			} catch (StringMappingException e) {
+				return tagNode.getRawString()[0] + innerHtmlStringBuilder.toString() + tagNode.getRawString()[1];
+			}
+		}
+		return innerHtmlStringBuilder.toString();
 	}
 }

@@ -1,8 +1,14 @@
 package aparmar2000.xenforoposter.syntax.bbcode;
 
+import java.util.List;
+
 import com.google.common.collect.ImmutableMap;
 
+import aparmar2000.xenforoposter.syntax.AbstractAst;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinition.HtmlNodeMapper.HtmlMappingException;
+import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlAstNodeTag;
+import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlCodeAstNode;
+import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinition;
 import lombok.Value;
 
 @Value
@@ -12,15 +18,15 @@ public class BbCodeTagDefinition {
 	
 	HtmlNodeMapper htmlMapper;
 	
-	public String mapNode(ImmutableMap<String, String> parameters, String innerText) throws HtmlMappingException {
-		return htmlMapper.mapNode(this, parameters, innerText);
+	public HtmlCodeAstNode mapNode(ImmutableMap<String, String> parameters, List<HtmlCodeAstNode> htmlChildNodes) throws HtmlMappingException {
+		return htmlMapper.mapNode(this, parameters, htmlChildNodes);
 	}
 	
-	public static BbCodeTagDefinition simpleHtmlSingularTag(String bbcodeTag, String htmlTag) {
+	public static BbCodeTagDefinition simpleHtmlSingularTag(String bbcodeTag, HtmlTagDefinition htmlTag) {
 		return new BbCodeTagDefinition(bbcodeTag, false, HtmlNodeMapper.simpleHtmlSingularTag(htmlTag));
 	}
 	
-	public static BbCodeTagDefinition simpleHtmlTagWrapper(String bbcodeTag, String htmlTag) {
+	public static BbCodeTagDefinition simpleHtmlTagWrapper(String bbcodeTag, HtmlTagDefinition htmlTag) {
 		return new BbCodeTagDefinition(bbcodeTag, true, HtmlNodeMapper.simpleHtmlTagWrapper(htmlTag));
 	}
 	
@@ -30,14 +36,14 @@ public class BbCodeTagDefinition {
 			private static final long serialVersionUID = -5694183233110625711L;			
 		}
 		
-		String mapNode(BbCodeTagDefinition tagDefinition, ImmutableMap<String, String> parameters, String innerText) throws HtmlMappingException;
+		HtmlCodeAstNode mapNode(BbCodeTagDefinition tagDefinition, ImmutableMap<String, String> parameters, List<HtmlCodeAstNode> htmlChildNodes) throws HtmlMappingException;
 
-		public static HtmlNodeMapper simpleHtmlSingularTag(String htmlTag) {
-			return (tagDef, params, innerText) -> String.format("<%s/>", htmlTag);
+		public static HtmlNodeMapper simpleHtmlSingularTag(HtmlTagDefinition htmlTag) {
+			return (tagDef, params, htmlChildNodes) -> new HtmlAstNodeTag(htmlTag, ImmutableMap.of());
 		}
 		
-		public static HtmlNodeMapper simpleHtmlTagWrapper(String htmlTag) {
-			return (tagDef, params, innerText) -> String.format("<%1$s>%2$s</%1$s>", htmlTag, innerText);
+		public static HtmlNodeMapper simpleHtmlTagWrapper(HtmlTagDefinition htmlTag) {
+			return (tagDef, params, htmlChildNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(htmlTag, ImmutableMap.of()), htmlChildNodes);
 		}
 	}
 }

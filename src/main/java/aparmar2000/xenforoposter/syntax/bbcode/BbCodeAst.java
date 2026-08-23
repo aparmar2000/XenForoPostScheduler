@@ -1,11 +1,17 @@
 package aparmar2000.xenforoposter.syntax.bbcode;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import com.google.common.collect.ImmutableMap;
 
 import aparmar2000.xenforoposter.syntax.AbstractAst;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinition.HtmlNodeMapper.HtmlMappingException;
+import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst;
+import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlAstNodeText;
+import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlCodeAstNode;
+import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlCodeAstNodeRoot;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -109,26 +115,44 @@ public class BbCodeAst extends AbstractAst<BbCodeAst.BbCodeAstNodeRoot> {
 	}
 	
 	public String mapToHtmlString() {
-		return mapNodeToHtmlString(rootNode);
+		return mapToHtmlAst().mapToHtmlString();
 	}
 	
-	protected String mapNodeToHtmlString(BbCodeAstNode node) {
-		if (node instanceof BbCodeAstNodeText) {
-			return ((BbCodeAstNodeText) node).getText();
+	public HtmlCodeAst mapToHtmlAst() {
+		return new HtmlCodeAst((HtmlCodeAstNodeRoot) mapNodeToHtmlNode(rootNode));
+	}
+	
+	protected HtmlCodeAstNodeRoot mapNodeToHtmlNode(BbCodeAstNodeRoot node) {
+		HtmlCodeAstNodeRoot newRoot = new HtmlCodeAstNodeRoot();
+
+		for (BbCodeAstNode childNode : node.getChildren()) {
+			newRoot.getChildren().addAll(mapNodeToHtmlNode(childNode));
 		}
 		
-		StringBuilder innerHtmlStringBuilder = new StringBuilder();
-		for (BbCodeAstNode childNode : node.getChildren()) {
-			innerHtmlStringBuilder.append(mapNodeToHtmlString(childNode));
+		return newRoot;
+	}
+	
+	protected List<HtmlCodeAstNode> mapNodeToHtmlNode(BbCodeAstNode node) {
+		if (node instanceof BbCodeAstNodeText) {
+			return List.of( new HtmlAstNodeText(((BbCodeAstNodeText)node).getText()) );
 		}
+		
+		List<HtmlCodeAstNode> childNodes = new ArrayList<>();
+		for (BbCodeAstNode childNode : node.getChildren()) {
+			childNodes.addAll(mapNodeToHtmlNode(childNode));
+		}
+		
 		if (node instanceof BbCodeAstNodeTag) {
 			BbCodeAstNodeTag tagNode = (BbCodeAstNodeTag) node;
 			try {
-				return tagNode.getTagDefinition().mapNode(tagNode.getParameters(), innerHtmlStringBuilder.toString());
+				return List.of( tagNode.getTagDefinition().mapNode(tagNode.getParameters(), childNodes) );
 			} catch (HtmlMappingException e) {
-				return tagNode.getRawString()[0] + innerHtmlStringBuilder.toString() + tagNode.getRawString()[1];
+				childNodes.add(0, new HtmlAstNodeText(tagNode.getRawString()[0]));
+				childNodes.add(new HtmlAstNodeText(tagNode.getRawString()[1]));
+				return childNodes;
 			}
 		}
-		return innerHtmlStringBuilder.toString();
+		
+		return childNodes;
 	}
 }
