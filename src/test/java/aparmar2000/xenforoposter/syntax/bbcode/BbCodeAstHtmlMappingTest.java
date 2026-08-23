@@ -1,6 +1,8 @@
 package aparmar2000.xenforoposter.syntax.bbcode;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -9,12 +11,29 @@ import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableMap;
 
+import aparmar2000.xenforoposter.syntax.AbstractAst;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeRoot;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeTag;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeText;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinition.HtmlNodeMapper.HtmlMappingException;
+import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst;
+import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlAstNodeTag;
+import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlAstNodeText;
+import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlCodeAstNode;
+import aparmar2000.xenforoposter.syntax.html.HtmlCodeAst.HtmlCodeAstNodeRoot;
+import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinition;
 
-@DisplayName("BbCodeAst HTML Mapping Tests (mapToHtmlString)")
+@DisplayName("BbCodeAst HTML Mapping Tests (mapToHtmlString and mapToHtmlAst)")
 class BbCodeAstHtmlMappingTest {
+
+	private HtmlTagDefinition boldHtmlTag;
+	private HtmlTagDefinition italicHtmlTag;
+	private HtmlTagDefinition underlineHtmlTag;
+	private HtmlTagDefinition colorHtmlTag;
+	private HtmlTagDefinition urlHtmlTag;
+	private HtmlTagDefinition quoteHtmlTag;
+	private HtmlTagDefinition codeHtmlTag;
+	private HtmlTagDefinition hrHtmlTag;
 
 	private BbCodeTagDefinition boldTag;
 	private BbCodeTagDefinition italicTag;
@@ -24,44 +43,62 @@ class BbCodeAstHtmlMappingTest {
 	private BbCodeTagDefinition quoteTag;
 	private BbCodeTagDefinition codeTag;
 	private BbCodeTagDefinition hrTag;
+	private BbCodeTagDefinition failingTag;
 
 	@BeforeEach
 	void setUp() {
-		boldTag = BbCodeTagDefinition.simpleHtmlTagWrapper("B", "b");
+		boldHtmlTag = HtmlTagDefinition.simpleHtmlTagWrapper("b", false);
+		boldTag = BbCodeTagDefinition.simpleHtmlTagWrapper("B", boldHtmlTag);
 
-		italicTag = BbCodeTagDefinition.simpleHtmlTagWrapper("I", "i");
+		italicHtmlTag = HtmlTagDefinition.simpleHtmlTagWrapper("i", false);
+		italicTag = BbCodeTagDefinition.simpleHtmlTagWrapper("I", italicHtmlTag);
 
-		underlineTag = BbCodeTagDefinition.simpleHtmlTagWrapper("U", "u");
+		underlineHtmlTag = HtmlTagDefinition.simpleHtmlTagWrapper("u", false);
+		underlineTag = BbCodeTagDefinition.simpleHtmlTagWrapper("U", underlineHtmlTag);
 
-		colorTag = new BbCodeTagDefinition("COLOR", true,
+		hrHtmlTag = HtmlTagDefinition.simpleHtmlSingularTag("hr");
+		hrTag = BbCodeTagDefinition.simpleHtmlSingularTag("HR", hrHtmlTag);
+
+		colorHtmlTag = new HtmlTagDefinition("span", true, false,
 				(tagDef, params, innerText) -> {
 					String color = params.get(BbCodeAstNodeTag.ROOT_PARAMETER_NAME);
 					return "<span style=\"color: " + (color != null ? color : "inherit") + ";\">" + innerText + "</span>";
 				});
+		colorTag = new BbCodeTagDefinition("COLOR", true,
+				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(colorHtmlTag, params), childNodes));
 
-		urlTag = new BbCodeTagDefinition("URL", true,
+		urlHtmlTag = new HtmlTagDefinition("a", true, false,
 				(tagDef, params, innerText) -> {
 					String href = params.getOrDefault(BbCodeAstNodeTag.ROOT_PARAMETER_NAME, innerText);
 					String target = params.get("target");
 					String targetAttr = target != null ? " target=\"" + target + "\"" : "";
 					return "<a href=\"" + href + "\"" + targetAttr + ">" + innerText + "</a>";
 				});
+		urlTag = new BbCodeTagDefinition("URL", true,
+				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(urlHtmlTag, params), childNodes));
 
-		quoteTag = new BbCodeTagDefinition("QUOTE", true,
+		quoteHtmlTag = new HtmlTagDefinition("blockquote", true, false,
 				(tagDef, params, innerText) -> {
 					String author = params.get("author");
 					String header = (author != null && !author.isBlank()) ? "<div class=\"quote-author\">" + author + " said:</div>" : "";
 					return "<blockquote>" + header + innerText + "</blockquote>";
 				});
+		quoteTag = new BbCodeTagDefinition("QUOTE", true,
+				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(quoteHtmlTag, params), childNodes));
 
-		codeTag = new BbCodeTagDefinition("CODE", false,
+		codeHtmlTag = new HtmlTagDefinition("pre", false, true,
 				(tagDef, params, innerText) -> {
 					String lang = params.get(BbCodeAstNodeTag.ROOT_PARAMETER_NAME);
 					String header = (lang != null && !lang.isBlank()) ? "<div class=\"code-header\">" + lang + "</div>" : "";
 					return "<pre><code>" + header + innerText + "</code></pre>";
 				});
+		codeTag = new BbCodeTagDefinition("CODE", false,
+				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(codeHtmlTag, params), childNodes));
 
-		hrTag = BbCodeTagDefinition.simpleHtmlSingularTag("HR", "hr");
+		failingTag = new BbCodeTagDefinition("FAIL", true,
+				(tagDef, params, childNodes) -> {
+					throw new HtmlMappingException();
+				});
 	}
 
 	@Nested
@@ -306,6 +343,66 @@ class BbCodeAstHtmlMappingTest {
 
 			BbCodeAst ast = new BbCodeAst(root);
 			assertEquals("<pre><code><div class=\"code-header\">java</div>System.out.println(\"[B]Not Bold[/B]\");</code></pre>", ast.mapToHtmlString());
+		}
+	}
+
+	@Nested
+	@DisplayName("HTML AST Conversion (mapToHtmlAst)")
+	class MapToHtmlAstTests {
+
+		@Test
+		@DisplayName("mapToHtmlAst converts BbCodeAst tree into HtmlCodeAst tree")
+		void testMapToHtmlAstTreeStructure() {
+			BbCodeAstNodeRoot root = new BbCodeAstNodeRoot();
+			BbCodeAstNodeTag bNode = new BbCodeAstNodeTag("[B]", boldTag, ImmutableMap.of());
+			bNode.getChildren().add(new BbCodeAstNodeText("Bold Content"));
+			root.getChildren().add(bNode);
+
+			BbCodeAst ast = new BbCodeAst(root);
+			HtmlCodeAst htmlAst = ast.mapToHtmlAst();
+
+			assertNotNull(htmlAst);
+			HtmlCodeAstNodeRoot htmlRoot = htmlAst.getRootNode();
+			assertNotNull(htmlRoot);
+			assertEquals(1, htmlRoot.getChildren().size());
+
+			HtmlCodeAstNode child = htmlRoot.getChildren().get(0);
+			assertTrue(child instanceof HtmlAstNodeTag);
+			HtmlAstNodeTag htmlTagNode = (HtmlAstNodeTag) child;
+			assertEquals(boldHtmlTag, htmlTagNode.getTagDefinition());
+
+			assertEquals(1, htmlTagNode.getChildren().size());
+			assertTrue(htmlTagNode.getChildren().get(0) instanceof HtmlAstNodeText);
+			assertEquals("Bold Content", ((HtmlAstNodeText) htmlTagNode.getChildren().get(0)).getText());
+		}
+
+		@Test
+		@DisplayName("HtmlMappingException fallback wraps child nodes with raw opening and closing string text nodes")
+		void testHtmlMappingExceptionFallback() {
+			BbCodeAstNodeRoot root = new BbCodeAstNodeRoot();
+			String[] rawString = new String[] {"[FAIL]", "[/FAIL]"};
+			BbCodeAstNodeTag failNode = new BbCodeAstNodeTag(rawString, failingTag, ImmutableMap.of());
+			failNode.getChildren().add(new BbCodeAstNodeText("Inner Text"));
+			root.getChildren().add(failNode);
+
+			BbCodeAst ast = new BbCodeAst(root);
+			HtmlCodeAst htmlAst = ast.mapToHtmlAst();
+
+			assertNotNull(htmlAst);
+			HtmlCodeAstNodeRoot htmlRoot = htmlAst.getRootNode();
+			List<HtmlCodeAstNode> children = htmlRoot.getChildren();
+			assertEquals(3, children.size());
+
+			assertTrue(children.get(0) instanceof HtmlAstNodeText);
+			assertEquals("[FAIL]", ((HtmlAstNodeText) children.get(0)).getText());
+
+			assertTrue(children.get(1) instanceof HtmlAstNodeText);
+			assertEquals("Inner Text", ((HtmlAstNodeText) children.get(1)).getText());
+
+			assertTrue(children.get(2) instanceof HtmlAstNodeText);
+			assertEquals("[/FAIL]", ((HtmlAstNodeText) children.get(2)).getText());
+
+			assertEquals("[FAIL]Inner Text[/FAIL]", ast.mapToHtmlString());
 		}
 	}
 

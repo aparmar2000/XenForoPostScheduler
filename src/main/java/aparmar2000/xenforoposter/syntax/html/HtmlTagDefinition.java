@@ -16,12 +16,12 @@ public class HtmlTagDefinition {
 		return stringMapper.mapNode(this, parameters, innerText);
 	}
 	
-	public static HtmlTagDefinition simpleHtmlSingularTag(String bbcodeTag, String htmlTag) {
-		return new HtmlTagDefinition(bbcodeTag, false, false, HtmlStringMapper.simpleHtmlSingularTag(htmlTag));
+	public static HtmlTagDefinition simpleHtmlSingularTag(String htmlTag) {
+		return new HtmlTagDefinition(htmlTag, false, false, HtmlStringMapper.simpleHtmlSingularTag(htmlTag));
 	}
 	
-	public static HtmlTagDefinition simpleHtmlTagWrapper(String bbcodeTag, String htmlTag, boolean innerTextRawRequired) {
-		return new HtmlTagDefinition(bbcodeTag, true, innerTextRawRequired, HtmlStringMapper.simpleHtmlTagWrapper(htmlTag));
+	public static HtmlTagDefinition simpleHtmlTagWrapper(String htmlTag, boolean innerTextRawRequired) {
+		return new HtmlTagDefinition(htmlTag, true, innerTextRawRequired, HtmlStringMapper.simpleHtmlTagWrapper(htmlTag));
 	}
 	
 	@FunctionalInterface
