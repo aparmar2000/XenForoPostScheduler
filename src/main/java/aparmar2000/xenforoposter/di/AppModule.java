@@ -26,6 +26,7 @@ import aparmar2000.xenforoposter.settings.SettingsHolder;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAstParser;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinitionRegistry;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTokenizer;
+import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinitionRegistry;
 import aparmar2000.xenforoposter.ui.MainFrame;
 import aparmar2000.xenforoposter.utils.GsonSupplier;
 import aparmar2000.xenforoposter.web.XenForoWebClient;
@@ -49,14 +50,14 @@ public class AppModule extends AbstractModule {
 	@Override
 	protected void configure() {
 		bind(Path.class)
-		.annotatedWith(Names.named("baseDataDir"))
-		.toInstance(baseDataDir);
+			.annotatedWith(Names.named("baseDataDir"))
+			.toInstance(baseDataDir);
 		bind(Path.class)
-		.annotatedWith(Names.named("credentialsKeyFile"))
-		.toInstance(baseDataDir.resolve(".credentials.key"));
+			.annotatedWith(Names.named("credentialsKeyFile"))
+			.toInstance(baseDataDir.resolve(".credentials.key"));
 		bind(Path.class)
-		.annotatedWith(Names.named("settingsFile"))
-		.toInstance(baseDataDir.resolve("general_settings.json"));
+			.annotatedWith(Names.named("settingsFile"))
+			.toInstance(baseDataDir.resolve("general_settings.json"));
 
 
 		install(new FactoryModuleBuilder()
@@ -161,5 +162,13 @@ public class AppModule extends AbstractModule {
 	public BbCodeAstParser provideBbCodeAstParser(BbCodeTagDefinitionRegistry bbCodeTagDefinitionRegistry,
 			BbCodeTokenizer bbCodeTokenizer) {
 		return new BbCodeAstParser(bbCodeTagDefinitionRegistry, bbCodeTokenizer);
+	}
+	
+	// --- Html AST
+
+	@Provides
+	@Singleton
+	public HtmlTagDefinitionRegistry provideHtmlTagDefinitionRegistry() {
+		return new HtmlTagDefinitionRegistry();
 	}
 }
