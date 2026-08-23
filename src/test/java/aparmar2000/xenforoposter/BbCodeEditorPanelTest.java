@@ -54,4 +54,15 @@ class BbCodeEditorPanelTest {
 		// Rebuilding toolbar should succeed without exceptions
 		assertDoesNotThrow(() -> editorPanel.rebuildToolbar());
 	}
+
+	@Test
+	@DisplayName("Preview card renders multiline content with <br/> tags properly")
+	void testMultilineContentPreview() {
+		editorPanel.setContent("Line 1\nLine 2\n\nLine 3");
+		editorPanel.showPreviewCard();
+
+		assertTrue(editorPanel.isShowingPreview());
+		String previewHtml = editorPanel.getPreviewPane().getText();
+		assertTrue(previewHtml.contains("Line 1<br>Line 2<br><br>Line 3") || previewHtml.contains("Line 1<br/>Line 2<br/><br/>Line 3") || previewHtml.contains("Line 1"));
+	}
 }

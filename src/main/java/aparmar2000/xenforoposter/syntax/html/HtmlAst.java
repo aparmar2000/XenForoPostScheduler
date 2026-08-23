@@ -104,7 +104,11 @@ public class HtmlAst extends AbstractAst<HtmlAst.HtmlAstNodeRoot> {
 	protected String mapNodeToHtmlString(Escaper escaper, HtmlAstNode node, boolean innerTextRawRequired) {
 		if (node instanceof HtmlAstNodeText) {
 			String nodeText = ((HtmlAstNodeText) node).getText();
-			return innerTextRawRequired ? nodeText : escaper.escape(nodeText);
+			if (innerTextRawRequired) {
+				return nodeText;
+			}
+			String escaped = escaper.escape(nodeText);
+			return escaped.replace("\r\n", "<br/>").replace("\r", "<br/>").replace("\n", "<br/>");
 		}
 		
 		boolean childrenInnerTextRawRequired = innerTextRawRequired;

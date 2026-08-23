@@ -1,6 +1,6 @@
 package aparmar2000.xenforoposter;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -162,5 +162,27 @@ class BbCodePreviewRendererTest {
 		assertTrue(darkHtml.contains("<style>"));
 		assertTrue(darkHtml.contains("<b>Hello</b>"));
 		assertTrue(darkHtml.contains("#1e2227")); // dark mode background
+	}
+
+	@Test
+	@DisplayName("Should convert single and multiple newlines into <br/> tags in rendered HTML")
+	void testNewlinesPreservationInPreview() {
+		String bb = "First line\nSecond line\n\nThird paragraph";
+		String html = renderer.convertBbCodeToHtml(bb);
+
+		assertEquals("First line<br/>Second line<br/><br/>Third paragraph", html);
+
+		String fullHtml = renderer.renderToHtml(bb, false);
+		assertTrue(fullHtml.contains("First line<br/>Second line<br/><br/>Third paragraph"));
+	}
+
+	@Test
+	@DisplayName("Should preserve multiline content within blockquotes and spoilers")
+	void testMultilineQuotesAndSpoilers() {
+		String bb = "[QUOTE='Author']Line 1\nLine 2[/QUOTE]\n\n[SPOILER]Hidden 1\nHidden 2[/SPOILER]";
+		String html = renderer.convertBbCodeToHtml(bb);
+
+		assertTrue(html.contains("<blockquote class=\"bbcode-quote\"><div class=\"quote-author\">Author said:</div>Line 1<br/>Line 2</blockquote>"));
+		assertTrue(html.contains("<div class=\"spoiler-body\">Hidden 1<br/>Hidden 2</div>"));
 	}
 }

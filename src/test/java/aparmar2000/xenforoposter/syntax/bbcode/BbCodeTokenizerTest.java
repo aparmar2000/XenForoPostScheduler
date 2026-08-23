@@ -225,6 +225,30 @@ class BbCodeTokenizerTest {
 	}
 
 	@Test
+	@DisplayName("tokenizeString preserves multiple spaces, blank lines, and tabs across tokens")
+	void testTokenizeMultilineAndWhitespacePreservation() {
+		String input = "Line 1   with spaces\n\n  [B]  bold  [/B]  \n\tTabbed line";
+		ImmutableList<ParsedToken> tokens = tokenizer.tokenizeString(input);
+
+		assertEquals(5, tokens.size());
+		assertEquals(new TextToken("Line 1   with spaces\n\n  "), tokens.get(0));
+
+		assertTrue(tokens.get(1) instanceof TagToken);
+		TagToken bOpen = (TagToken) tokens.get(1);
+		assertEquals("[B]", bOpen.getRawString());
+		assertEquals(bTag, bOpen.getTagDefinition());
+
+		assertEquals(new TextToken("  bold  "), tokens.get(2));
+
+		assertTrue(tokens.get(3) instanceof TagToken);
+		TagToken bClose = (TagToken) tokens.get(3);
+		assertEquals("[/B]", bClose.getRawString());
+		assertEquals(bTag, bClose.getTagDefinition());
+
+		assertEquals(new TextToken("  \n\tTabbed line"), tokens.get(4));
+	}
+
+	@Test
 	@DisplayName("tokenizeString parses tags with root value parameter and ending tags")
 	void testTokenizeRootParameter() {
 		ImmutableList<ParsedToken> tokens = tokenizer.tokenizeString("[COLOR=red]Colored text[/COLOR]");

@@ -139,6 +139,24 @@ class DefaultTagDefinitionsTest {
 		}
 
 		@Test
+		@DisplayName("Should render tables with newlines between tags cleanly without stray <br/> tags")
+		void testTableWithNewlinesBetweenTags() {
+			String bb = "\n[TABLE]\n[TR]\n[TH]Col 1[/TH]\n[TH]Col 2[/TH]\n[/TR]\n[TR]\n[TD]Val 1[/TD]\n[TD]Val 2[/TD]\n[/TR]\n[/TABLE]\n";
+			String html = renderer.convertBbCodeToHtml(bb);
+			assertTrue(html.contains("<table class=\"bbcode-table\"><tr><th>Col 1</th><th>Col 2</th></tr><tr><td>Val 1</td><td>Val 2</td></tr></table>"));
+			assertFalse(html.contains("<table class=\"bbcode-table\"><br/>"));
+			assertFalse(html.contains("<tr><br/>"));
+		}
+
+		@Test
+		@DisplayName("Should render lists with multiline items and newline line breaks")
+		void testListWithMultilineItems() {
+			String bb = "[LIST]\n[*]Item 1 Line 1\nItem 1 Line 2\n[*]Item 2\n[/LIST]";
+			String html = renderer.convertBbCodeToHtml(bb);
+			assertEquals("<ul class=\"bbcode-list\"><li>Item 1 Line 1<br/>Item 1 Line 2</li><li>Item 2</li></ul>", html);
+		}
+
+		@Test
 		@DisplayName("Should render quotes with and without author attribution")
 		void testQuotes() {
 			assertEquals("<blockquote class=\"bbcode-quote\">Simple quote</blockquote>", renderer.convertBbCodeToHtml("[QUOTE]Simple quote[/QUOTE]"));

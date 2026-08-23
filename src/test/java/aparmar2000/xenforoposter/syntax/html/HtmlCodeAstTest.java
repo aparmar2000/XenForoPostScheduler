@@ -174,6 +174,33 @@ class HtmlCodeAstTest {
 			HtmlAst ast = new HtmlAst(root);
 			assertEquals("Line 1 &amp; Line 2 &lt; Line 3", ast.mapToHtmlString());
 		}
+
+		@Test
+		@DisplayName("Single newlines are converted to <br/> tags")
+		void testSingleNewlineConversion() {
+			HtmlAstNodeRoot root = new HtmlAstNodeRoot();
+			root.getChildren().add(new HtmlAstNodeText("First Line\nSecond Line"));
+			HtmlAst ast = new HtmlAst(root);
+			assertEquals("First Line<br/>Second Line", ast.mapToHtmlString());
+		}
+
+		@Test
+		@DisplayName("Multiple consecutive newlines and carriage returns map to multiple <br/> tags")
+		void testMultipleNewlinesAndCarriageReturns() {
+			HtmlAstNodeRoot root = new HtmlAstNodeRoot();
+			root.getChildren().add(new HtmlAstNodeText("Paragraph 1\r\n\r\nParagraph 2\n\n\nParagraph 3"));
+			HtmlAst ast = new HtmlAst(root);
+			assertEquals("Paragraph 1<br/><br/>Paragraph 2<br/><br/><br/>Paragraph 3", ast.mapToHtmlString());
+		}
+
+		@Test
+		@DisplayName("Blank spaces are preserved as normal spaces for natural HTML collapsing")
+		void testBlankSpacesPreservedAsStandardSpaces() {
+			HtmlAstNodeRoot root = new HtmlAstNodeRoot();
+			root.getChildren().add(new HtmlAstNodeText("Word1   Word2    Word3"));
+			HtmlAst ast = new HtmlAst(root);
+			assertEquals("Word1   Word2    Word3", ast.mapToHtmlString());
+		}
 	}
 
 	@Nested

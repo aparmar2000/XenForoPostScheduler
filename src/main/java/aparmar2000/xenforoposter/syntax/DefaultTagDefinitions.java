@@ -335,10 +335,10 @@ public final class DefaultTagDefinitions {
 		// Tables
 		HtmlTagDefinition tableHtml = htmlRegistry.getByTagString("table");
 		bbCodeRegistry.register(new BbCodeTagDefinition("TABLE", true,
-				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(tableHtml, ImmutableMap.of()), childNodes)));
+				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(tableHtml, ImmutableMap.of()), filterWhitespaceNodes(childNodes))));
 		HtmlTagDefinition trHtml = htmlRegistry.getByTagString("tr");
 		bbCodeRegistry.register(new BbCodeTagDefinition("TR", true,
-				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(trHtml, ImmutableMap.of()), childNodes)));
+				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(trHtml, ImmutableMap.of()), filterWhitespaceNodes(childNodes))));
 		HtmlTagDefinition thHtml = htmlRegistry.getByTagString("th");
 		bbCodeRegistry.register(new BbCodeTagDefinition("TH", true,
 				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(thHtml, ImmutableMap.of()), childNodes)));
@@ -395,6 +395,20 @@ public final class DefaultTagDefinitions {
 
 					return AbstractAst.wrap(new HtmlAstNodeTag(listTag, ImmutableMap.of()), listItems);
 				}));
+	}
+
+	private static List<HtmlAstNode> filterWhitespaceNodes(List<HtmlAstNode> nodes) {
+		List<HtmlAstNode> filtered = new ArrayList<>();
+		for (HtmlAstNode node : nodes) {
+			if (node instanceof HtmlAstNodeText) {
+				if (!((HtmlAstNodeText) node).getText().trim().isEmpty()) {
+					filtered.add(node);
+				}
+			} else {
+				filtered.add(node);
+			}
+		}
+		return filtered;
 	}
 
 	private static String stripNewlines(String s) {

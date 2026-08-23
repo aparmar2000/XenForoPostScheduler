@@ -127,7 +127,7 @@ class BbCodeAstHtmlMappingTest {
 		}
 
 		@Test
-		@DisplayName("Multiple consecutive text nodes map to concatenated text")
+		@DisplayName("Multiple consecutive text nodes map to concatenated text with <br/> for newlines")
 		void testMultipleTextNodesConcatenation() {
 			BbCodeAstNodeRoot root = new BbCodeAstNodeRoot();
 			root.getChildren().add(new BbCodeAstNodeText("First"));
@@ -137,7 +137,7 @@ class BbCodeAstHtmlMappingTest {
 			BbCodeAst ast = new BbCodeAst(root);
 
 			String html = ast.mapToHtmlString();
-			assertEquals("First Second\nThird", html);
+			assertEquals("First Second<br/>Third", html);
 		}
 
 		@Test
@@ -477,6 +477,14 @@ class BbCodeAstHtmlMappingTest {
 		void testParsedUnclosedTags() {
 			BbCodeAst ast = parser.parseString("[B]Unclosed bold");
 			assertEquals("[B]Unclosed bold", ast.mapToHtmlString());
+		}
+
+		@Test
+		@DisplayName("Parsed multiline BBCode content converts newlines to <br/> and keeps blank spaces as standard spaces")
+		void testParsedMultilineContentWithNewlinesAndSpaces() {
+			String bb = "Line 1   with spaces\n\n[B]Line 2   Bold[/B]\nLine 3";
+			BbCodeAst ast = parser.parseString(bb);
+			assertEquals("Line 1   with spaces<br/><br/><b>Line 2   Bold</b><br/>Line 3", ast.mapToHtmlString());
 		}
 	}
 }
