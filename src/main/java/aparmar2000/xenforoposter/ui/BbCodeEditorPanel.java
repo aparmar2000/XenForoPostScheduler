@@ -34,10 +34,10 @@ import org.jetbrains.annotations.Nullable;
 
 import com.formdev.flatlaf.FlatLaf;
 
-import aparmar2000.xenforoposter.bbcode.BbCodePreviewRenderer;
 import aparmar2000.xenforoposter.extension.ExtensionManager;
 import aparmar2000.xenforoposter.extension.toolbar.BbCodeToolbarItem;
 import aparmar2000.xenforoposter.extension.toolbar.EditorContext;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodePreviewRenderer;
 
 public class BbCodeEditorPanel extends JPanel {
 	private static final long serialVersionUID = 9000475208358345971L;

@@ -1,4 +1,4 @@
-package aparmar2000.xenforoposter.bbcode;
+package aparmar2000.xenforoposter.syntax.bbcode;
 
 import java.util.HashSet;
 import java.util.Set;

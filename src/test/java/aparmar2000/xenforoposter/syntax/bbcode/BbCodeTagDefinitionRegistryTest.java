@@ -1,4 +1,4 @@
-package aparmar2000.xenforoposter.bbcode;
+package aparmar2000.xenforoposter.syntax.bbcode;
 
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -1,8 +1,8 @@
-package aparmar2000.xenforoposter.bbcode;
+package aparmar2000.xenforoposter.syntax.bbcode;
 
 import com.google.common.collect.ImmutableMap;
 
-import aparmar2000.xenforoposter.bbcode.BbCodeTagDefinition.HtmlNodeMapper.HtmlMappingException;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinition.HtmlNodeMapper.HtmlMappingException;
 import lombok.Value;
 
 @Value

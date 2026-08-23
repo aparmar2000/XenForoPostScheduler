@@ -1,4 +1,4 @@
-package aparmar2000.xenforoposter.bbcode;
+package aparmar2000.xenforoposter.syntax.bbcode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +10,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 
-import aparmar2000.xenforoposter.bbcode.BbCodeAst.BbCodeAstNodeTag;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeTag;
 import aparmar2000.xenforoposter.utils.CodePointTrie.CodePointTrieNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

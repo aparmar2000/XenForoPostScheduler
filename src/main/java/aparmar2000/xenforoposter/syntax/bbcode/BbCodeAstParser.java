@@ -1,4 +1,4 @@
-package aparmar2000.xenforoposter.bbcode;
+package aparmar2000.xenforoposter.syntax.bbcode;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -7,14 +7,14 @@ import java.util.List;
 
 import com.google.inject.Inject;
 
-import aparmar2000.xenforoposter.bbcode.BbCodeAst.BbCodeAstBranchNode;
-import aparmar2000.xenforoposter.bbcode.BbCodeAst.BbCodeAstLeafNode;
-import aparmar2000.xenforoposter.bbcode.BbCodeAst.BbCodeAstNode;
-import aparmar2000.xenforoposter.bbcode.BbCodeAst.BbCodeAstNodeRoot;
-import aparmar2000.xenforoposter.bbcode.BbCodeAst.BbCodeAstNodeTag;
-import aparmar2000.xenforoposter.bbcode.BbCodeAst.BbCodeAstNodeText;
-import aparmar2000.xenforoposter.bbcode.BbCodeTokenizer.ParsedToken;
-import aparmar2000.xenforoposter.bbcode.BbCodeTokenizer.TagToken;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstBranchNode;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstLeafNode;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNode;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeRoot;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeTag;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeText;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTokenizer.ParsedToken;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTokenizer.TagToken;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 

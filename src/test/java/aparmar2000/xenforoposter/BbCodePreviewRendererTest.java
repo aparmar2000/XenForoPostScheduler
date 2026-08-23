@@ -6,7 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import aparmar2000.xenforoposter.bbcode.BbCodePreviewRenderer;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodePreviewRenderer;
 
 class BbCodePreviewRendererTest {
 	private BbCodePreviewRenderer renderer;

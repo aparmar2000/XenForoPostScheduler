@@ -1,4 +1,4 @@
-package aparmar2000.xenforoposter.bbcode;
+package aparmar2000.xenforoposter.syntax.bbcode;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -16,12 +16,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
-import aparmar2000.xenforoposter.bbcode.BbCodeAst.BbCodeAstNode;
-import aparmar2000.xenforoposter.bbcode.BbCodeAst.BbCodeAstNodeRoot;
-import aparmar2000.xenforoposter.bbcode.BbCodeAst.BbCodeAstNodeTag;
-import aparmar2000.xenforoposter.bbcode.BbCodeAst.BbCodeAstNodeText;
-import aparmar2000.xenforoposter.bbcode.BbCodeTokenizer.TagToken;
-import aparmar2000.xenforoposter.bbcode.BbCodeTokenizer.TextToken;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNode;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeRoot;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeTag;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeText;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTokenizer.TagToken;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTokenizer.TextToken;
 
 @ExtendWith(MockitoExtension.class)
 class BbCodeAstParserTest {

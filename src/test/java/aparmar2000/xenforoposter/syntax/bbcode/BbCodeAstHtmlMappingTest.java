@@ -1,6 +1,6 @@
-package aparmar2000.xenforoposter.bbcode;
+package aparmar2000.xenforoposter.syntax.bbcode;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -9,9 +9,9 @@ import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableMap;
 
-import aparmar2000.xenforoposter.bbcode.BbCodeAst.BbCodeAstNodeRoot;
-import aparmar2000.xenforoposter.bbcode.BbCodeAst.BbCodeAstNodeTag;
-import aparmar2000.xenforoposter.bbcode.BbCodeAst.BbCodeAstNodeText;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeRoot;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeTag;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeText;
 
 @DisplayName("BbCodeAst HTML Mapping Tests (mapToHtmlString)")
 class BbCodeAstHtmlMappingTest {

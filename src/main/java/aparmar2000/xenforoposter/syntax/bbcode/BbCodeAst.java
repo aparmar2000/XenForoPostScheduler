@@ -1,54 +1,39 @@
-package aparmar2000.xenforoposter.bbcode;
-
-import java.util.ArrayList;
-import java.util.List;
+package aparmar2000.xenforoposter.syntax.bbcode;
 
 import com.google.common.collect.ImmutableMap;
 
-import aparmar2000.xenforoposter.bbcode.BbCodeTagDefinition.HtmlNodeMapper.HtmlMappingException;
+import aparmar2000.xenforoposter.syntax.AbstractAst;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinition.HtmlNodeMapper.HtmlMappingException;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 
-@RequiredArgsConstructor
-public class BbCodeAst {	
-	public static abstract class BbCodeAstNode implements Cloneable {
-		public abstract boolean hasChildren();
-		@NonNull
-		public abstract List<BbCodeAstNode> getChildren();
-		
-		public abstract BbCodeAstNode clone();
-	}
+public class BbCodeAst extends AbstractAst<BbCodeAst.BbCodeAstNodeRoot> {
 
-	@Data
-	@EqualsAndHashCode(callSuper = false)
-	public static abstract class BbCodeAstBranchNode extends BbCodeAstNode {
-		private final List<BbCodeAstNode> children = new ArrayList<>();
-		
-		public boolean hasChildren() {
-			return !children.isEmpty();
-		}
-		
-		public abstract BbCodeAstBranchNode clone();
-	}
+    public BbCodeAst(BbCodeAstNodeRoot rootNode) {
+        super(rootNode);
+    }
 
-	@Data
-	@EqualsAndHashCode(callSuper = false)
-	public static abstract class BbCodeAstLeafNode extends BbCodeAstNode {
-		public boolean hasChildren() {
-			return false;
-		}
-		
-		public List<BbCodeAstNode> getChildren() {
-			return List.of();
-		}
-		
-		public abstract BbCodeAstLeafNode clone();
-	}
+    public static interface BbCodeAstNode extends AbstractAst.AstNode<BbCodeAstNode> {
+        @Override
+        public BbCodeAstNode clone();
+    }
+
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    public static abstract class BbCodeAstBranchNode extends AbstractAst.AstBranchNode<BbCodeAstNode> implements BbCodeAstNode {
+        @Override
+        public abstract BbCodeAstBranchNode clone();
+    }
+
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    public static abstract class BbCodeAstLeafNode extends AstLeafNode<BbCodeAstNode> implements BbCodeAstNode {
+        @Override
+        public abstract BbCodeAstLeafNode clone();
+    }
 
 	@Data
 	@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
@@ -100,9 +85,6 @@ public class BbCodeAst {
 			return clonedNode;
 		}
 	}
-	
-	@Getter
-	protected final BbCodeAstNodeRoot rootNode;
 	
 	public String mapToHtmlString() {
 		return mapNodeToHtmlString(rootNode);

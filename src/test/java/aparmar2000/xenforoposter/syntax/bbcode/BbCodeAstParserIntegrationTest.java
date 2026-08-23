@@ -1,4 +1,4 @@
-package aparmar2000.xenforoposter.bbcode;
+package aparmar2000.xenforoposter.syntax.bbcode;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -9,9 +9,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import aparmar2000.xenforoposter.bbcode.BbCodeAst.BbCodeAstNode;
-import aparmar2000.xenforoposter.bbcode.BbCodeAst.BbCodeAstNodeTag;
-import aparmar2000.xenforoposter.bbcode.BbCodeAst.BbCodeAstNodeText;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNode;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeTag;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeText;
 
 /**
  * End-to-end parsing integration test covering the entire BBCode parsing pipeline

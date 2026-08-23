@@ -1,4 +1,4 @@
-package aparmar2000.xenforoposter.bbcode;
+package aparmar2000.xenforoposter.syntax.bbcode;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -11,10 +11,10 @@ import org.junit.jupiter.api.Test;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
-import aparmar2000.xenforoposter.bbcode.BbCodeTokenizer.ParsedToken;
-import aparmar2000.xenforoposter.bbcode.BbCodeTokenizer.TagToken;
-import aparmar2000.xenforoposter.bbcode.BbCodeTokenizer.TextToken;
-import aparmar2000.xenforoposter.bbcode.BbCodeTokenizer.TokenListBuilder;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTokenizer.ParsedToken;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTokenizer.TagToken;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTokenizer.TextToken;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTokenizer.TokenListBuilder;
 
 class BbCodeTokenizerTest {
 
