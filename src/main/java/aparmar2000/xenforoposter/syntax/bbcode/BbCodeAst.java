@@ -1,5 +1,7 @@
 package aparmar2000.xenforoposter.syntax.bbcode;
 
+import java.util.Arrays;
+
 import com.google.common.collect.ImmutableMap;
 
 import aparmar2000.xenforoposter.syntax.AbstractAst;
@@ -54,7 +56,6 @@ public class BbCodeAst extends AbstractAst<BbCodeAst.BbCodeAstNodeRoot> {
 	}
 
 	@Data
-	@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 	@EqualsAndHashCode(callSuper = true)
 	public static class BbCodeAstNodeTag extends BbCodeAstBranchNode {
 		/**
@@ -62,13 +63,34 @@ public class BbCodeAst extends AbstractAst<BbCodeAst.BbCodeAstNodeRoot> {
 		 */
 		public static final String ROOT_PARAMETER_NAME = "$value";
 
-		private final String rawString;
+		private final String[] rawString;
 		private final BbCodeTagDefinition tagDefinition;
 		private final ImmutableMap<String, String> parameters;
 		
+		public BbCodeAstNodeTag(BbCodeTagDefinition tagDefinition, ImmutableMap<String, String> parameters) {
+			rawString = new String[] {"", ""};
+			this.tagDefinition = tagDefinition;
+			this.parameters = parameters;
+		}
+		
+		public BbCodeAstNodeTag(String openingTag, BbCodeTagDefinition tagDefinition, ImmutableMap<String, String> parameters) {
+			rawString = new String[] {openingTag, ""};
+			this.tagDefinition = tagDefinition;
+			this.parameters = parameters;
+		}
+
+		public BbCodeAstNodeTag(String[] rawString, BbCodeTagDefinition tagDefinition, ImmutableMap<String, String> parameters) {
+			if (rawString.length != 2) {
+				throw new IllegalArgumentException("rawString must be of length 2, but is length "+rawString.length);
+			}
+			this.rawString = rawString;
+			this.tagDefinition = tagDefinition;
+			this.parameters = parameters;
+		}
+
 		@Override
 		public BbCodeAstNodeTag clone() {
-			val clonedNode = new BbCodeAstNodeTag(rawString, tagDefinition, parameters);
+			val clonedNode = new BbCodeAstNodeTag(Arrays.copyOf(rawString, 2), tagDefinition, parameters);
 			clonedNode.getChildren().addAll(getChildren());
 			return clonedNode;
 		}
@@ -104,7 +126,7 @@ public class BbCodeAst extends AbstractAst<BbCodeAst.BbCodeAstNodeRoot> {
 			try {
 				return tagNode.getTagDefinition().mapNode(tagNode.getParameters(), innerHtmlStringBuilder.toString());
 			} catch (HtmlMappingException e) {
-				return innerHtmlStringBuilder.toString();
+				return tagNode.getRawString()[0] + innerHtmlStringBuilder.toString() + tagNode.getRawString()[1];
 			}
 		}
 		return innerHtmlStringBuilder.toString();

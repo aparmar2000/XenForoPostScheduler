@@ -137,7 +137,7 @@ class BbCodeAstParserTest {
 			assertTrue(children.get(0) instanceof BbCodeAstNodeTag);
 
 			BbCodeAstNodeTag bNode = (BbCodeAstNodeTag) children.get(0);
-			assertEquals("[B]", bNode.getRawString());
+			assertArrayEquals(new String[] {"[B]", "[/B]"}, bNode.getRawString());
 			assertEquals(boldTag, bNode.getTagDefinition());
 			assertEquals(1, bNode.getChildren().size());
 			assertEquals("content", ((BbCodeAstNodeText) bNode.getChildren().get(0)).getText());
@@ -159,6 +159,7 @@ class BbCodeAstParserTest {
 
 			assertEquals(1, children.size());
 			BbCodeAstNodeTag colorNode = (BbCodeAstNodeTag) children.get(0);
+			assertArrayEquals(new String[] {"[COLOR=red]", "[/COLOR]"}, colorNode.getRawString());
 			assertEquals(params, colorNode.getParameters());
 			assertEquals("Text", ((BbCodeAstNodeText) colorNode.getChildren().get(0)).getText());
 		}
@@ -180,10 +181,12 @@ class BbCodeAstParserTest {
 
 			assertEquals(1, rootChildren.size());
 			BbCodeAstNodeTag bNode = (BbCodeAstNodeTag) rootChildren.get(0);
+			assertArrayEquals(new String[] {"[B]", "[/B]"}, bNode.getRawString());
 			assertEquals(boldTag, bNode.getTagDefinition());
 
 			assertEquals(1, bNode.getChildren().size());
 			BbCodeAstNodeTag iNode = (BbCodeAstNodeTag) bNode.getChildren().get(0);
+			assertArrayEquals(new String[] {"[I]", "[/I]"}, iNode.getRawString());
 			assertEquals(italicTag, iNode.getTagDefinition());
 
 			assertEquals(1, iNode.getChildren().size());
@@ -207,6 +210,7 @@ class BbCodeAstParserTest {
 
 			assertEquals(1, rootChildren.size());
 			BbCodeAstNodeTag codeNode = (BbCodeAstNodeTag) rootChildren.get(0);
+			assertArrayEquals(new String[] {"[CODE]", "[/CODE]"}, codeNode.getRawString());
 			assertEquals(codeTag, codeNode.getTagDefinition());
 
 			// Inside CODE, the tokens should be merged as raw text
@@ -235,13 +239,16 @@ class BbCodeAstParserTest {
 
 			// Branch 1: [B] containing [I]bi[/I]
 			BbCodeAstNodeTag bNode = (BbCodeAstNodeTag) rootChildren.get(0);
+			assertArrayEquals(new String[] {"[B]", "[/B]"}, bNode.getRawString());
 			assertEquals(boldTag, bNode.getTagDefinition());
 			BbCodeAstNodeTag iNode1 = (BbCodeAstNodeTag) bNode.getChildren().get(0);
+			assertArrayEquals(new String[] {"[I]", "[/I]"}, iNode1.getRawString());
 			assertEquals(italicTag, iNode1.getTagDefinition());
 			assertEquals("bi", ((BbCodeAstNodeText) iNode1.getChildren().get(0)).getText());
 
 			// Branch 2: cloned [I] containing i
 			BbCodeAstNodeTag iNode2 = (BbCodeAstNodeTag) rootChildren.get(1);
+			assertArrayEquals(new String[] {"[I]", "[/I]"}, iNode2.getRawString());
 			assertEquals(italicTag, iNode2.getTagDefinition());
 			assertEquals("i", ((BbCodeAstNodeText) iNode2.getChildren().get(0)).getText());
 		}
@@ -304,6 +311,7 @@ class BbCodeAstParserTest {
 
 			assertTrue(rootChildren.get(1) instanceof BbCodeAstNodeTag);
 			BbCodeAstNodeTag iNode = (BbCodeAstNodeTag) rootChildren.get(1);
+			assertArrayEquals(new String[] {"[I]", "[/I]"}, iNode.getRawString());
 			assertEquals(italicTag, iNode.getTagDefinition());
 			assertEquals("italic", ((BbCodeAstNodeText) iNode.getChildren().get(0)).getText());
 
@@ -341,6 +349,7 @@ class BbCodeAstParserTest {
 
 			assertEquals(1, rootChildren.size());
 			BbCodeAstNodeTag bNode = (BbCodeAstNodeTag) rootChildren.get(0);
+			assertArrayEquals(new String[] {"[B]", "[/B]"}, bNode.getRawString());
 			assertEquals(boldTag, bNode.getTagDefinition());
 			assertEquals(1, bNode.getChildren().size());
 			assertEquals("[/I]", ((BbCodeAstNodeText) bNode.getChildren().get(0)).getText());
@@ -372,9 +381,9 @@ class BbCodeAstParserTest {
 		@DisplayName("BbCodeAstNodeTag clone, children, and properties")
 		void testBbCodeAstNodeTag() {
 			ImmutableMap<String, String> params = ImmutableMap.of("$value", "red", "key", "val");
-			BbCodeAstNodeTag tagNode = new BbCodeAstNodeTag("[COLOR=red key=val]", colorTag, params);
+			BbCodeAstNodeTag tagNode = new BbCodeAstNodeTag(new String[]{"[COLOR=red key=val]", "[/COLOR]"}, colorTag, params);
 
-			assertEquals("[COLOR=red key=val]", tagNode.getRawString());
+			assertArrayEquals(new String[] {"[COLOR=red key=val]", "[/COLOR]"}, tagNode.getRawString());
 			assertEquals(colorTag, tagNode.getTagDefinition());
 			assertEquals(params, tagNode.getParameters());
 			assertFalse(tagNode.hasChildren());
@@ -387,6 +396,7 @@ class BbCodeAstParserTest {
 			assertEquals(tagNode.hashCode(), cloned.hashCode());
 			assertNotSame(tagNode, cloned);
 			assertNotSame(tagNode.getChildren(), cloned.getChildren());
+			assertArrayEquals(tagNode.getRawString(), cloned.getRawString());
 			assertEquals(1, cloned.getChildren().size());
 		}
 

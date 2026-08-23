@@ -49,6 +49,7 @@ public class BbCodeAstParser {
 					if (parentTagNode != null) {
 						if (parentTagNode.getTagDefinition() == bbcodeTagToken.getTagDefinition()) {
 							
+							parentTagNode.getRawString()[1] = bbcodeTagToken.getRawString();
 							currentNodeParents.pollLast();
 							continue;
 							
@@ -71,9 +72,20 @@ public class BbCodeAstParser {
 								while (currentNodeParents.peekLast() != foundMatchingNode) { currentNodeParents.pollLast(); }
 								currentNodeParents.pollLast();
 								
+								if (foundMatchingNode instanceof BbCodeAstNodeTag) {
+									((BbCodeAstNodeTag) foundMatchingNode).getRawString()[1] = bbcodeTagToken.getRawString();
+								}
+								
 								for (BbCodeAstBranchNode nodeToSplit : nodesToSplit) {
+									if (nodeToSplit instanceof BbCodeAstNodeTag) {
+										((BbCodeAstNodeTag) nodeToSplit).getRawString()[1] = "[/" + ((BbCodeAstNodeTag) nodeToSplit).getTagDefinition().getTag() + "]";
+									}
+									
 									lastParent = currentNodeParents.peekLast();
 									BbCodeAstBranchNode clonedNode = nodeToSplit.clone();
+									if (clonedNode instanceof BbCodeAstNodeTag) {
+										((BbCodeAstNodeTag) clonedNode).getRawString()[1] = "";
+									}
 									
 									clonedNode.getChildren().clear();
 									lastParent.getChildren().add(clonedNode);
@@ -110,7 +122,8 @@ public class BbCodeAstParser {
 			
 			String mergingRawText = "";
 			if (mergingParent instanceof BbCodeAstNodeTag) {
-				mergingRawText = ((BbCodeAstNodeTag) mergingParent).getRawString();
+				String[] rawStringParts = ((BbCodeAstNodeTag) mergingParent).getRawString();
+				mergingRawText = rawStringParts[0] + rawStringParts[1];
 			}
 			
 			lastParent.getChildren().remove(mergingParent);
