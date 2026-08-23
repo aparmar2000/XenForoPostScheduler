@@ -41,7 +41,7 @@ class BbCodeTagDefinitionRegistryTest {
 	@Test
 	@DisplayName("Registering a new tag definition updates registered set and trie")
 	void testRegisterTag() {
-		BbCodeTagDefinition bTag = new BbCodeTagDefinition("B", true);
+		BbCodeTagDefinition bTag = new BbCodeTagDefinition("B", true, null);
 		boolean registered = registry.register(bTag);
 
 		assertTrue(registered);
@@ -58,8 +58,8 @@ class BbCodeTagDefinitionRegistryTest {
 	@Test
 	@DisplayName("Registering duplicate tag returns false and does not duplicate in set")
 	void testRegisterDuplicateTag() {
-		BbCodeTagDefinition bTag1 = new BbCodeTagDefinition("B", true);
-		BbCodeTagDefinition bTag2 = new BbCodeTagDefinition("B", true);
+		BbCodeTagDefinition bTag1 = new BbCodeTagDefinition("B", true, null);
+		BbCodeTagDefinition bTag2 = new BbCodeTagDefinition("B", true, null);
 
 		assertTrue(registry.register(bTag1));
 		assertFalse(registry.register(bTag2));
@@ -69,8 +69,8 @@ class BbCodeTagDefinitionRegistryTest {
 	@Test
 	@DisplayName("Unregistering existing tag removes from set and invalidates trie")
 	void testUnregisterTag() {
-		BbCodeTagDefinition bTag = new BbCodeTagDefinition("B", true);
-		BbCodeTagDefinition iTag = new BbCodeTagDefinition("I", true);
+		BbCodeTagDefinition bTag = new BbCodeTagDefinition("B", true, null);
+		BbCodeTagDefinition iTag = new BbCodeTagDefinition("I", true, null);
 
 		registry.register(bTag);
 		registry.register(iTag);
@@ -89,14 +89,14 @@ class BbCodeTagDefinitionRegistryTest {
 	@Test
 	@DisplayName("Unregistering non-existent tag returns false")
 	void testUnregisterNonExistentTag() {
-		BbCodeTagDefinition bTag = new BbCodeTagDefinition("B", true);
+		BbCodeTagDefinition bTag = new BbCodeTagDefinition("B", true, null);
 		assertFalse(registry.unregister(bTag));
 	}
 
 	@Test
 	@DisplayName("markTreeDirty resets cached trie and forces rebuild on next getTagTrie")
 	void testMarkTreeDirty() {
-		BbCodeTagDefinition bTag = new BbCodeTagDefinition("B", true);
+		BbCodeTagDefinition bTag = new BbCodeTagDefinition("B", true, null);
 		registry.register(bTag);
 
 		CodePointTrie<BbCodeTagDefinition> firstTrie = registry.getTagTrie();
@@ -114,10 +114,10 @@ class BbCodeTagDefinitionRegistryTest {
 	@Test
 	@DisplayName("buildTree builds trie for multiple overlapping and multi-character tags")
 	void testMultipleAndOverlappingTags() {
-		BbCodeTagDefinition cTag = new BbCodeTagDefinition("C", true);
-		BbCodeTagDefinition codeTag = new BbCodeTagDefinition("CODE", false);
-		BbCodeTagDefinition colorTag = new BbCodeTagDefinition("COLOR", true);
-		BbCodeTagDefinition quoteTag = new BbCodeTagDefinition("QUOTE", true);
+		BbCodeTagDefinition cTag = new BbCodeTagDefinition("C", true, null);
+		BbCodeTagDefinition codeTag = new BbCodeTagDefinition("CODE", false, null);
+		BbCodeTagDefinition colorTag = new BbCodeTagDefinition("COLOR", true, null);
+		BbCodeTagDefinition quoteTag = new BbCodeTagDefinition("QUOTE", true, null);
 
 		registry.register(cTag);
 		registry.register(codeTag);
@@ -180,7 +180,7 @@ class BbCodeTagDefinitionRegistryTest {
 				try {
 					startLatch.await();
 					for (int j = 0; j < iterationsPerThread; j++) {
-						BbCodeTagDefinition tag = new BbCodeTagDefinition("TAG_" + threadId + "_" + j, true);
+						BbCodeTagDefinition tag = new BbCodeTagDefinition("TAG_" + threadId + "_" + j, true, null);
 						registry.register(tag);
 						assertNotNull(registry.getTagTrie());
 						assertNotNull(registry.getRegisteredTagDefinitions());

@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.google.common.collect.ImmutableMap;
 
+import aparmar2000.xenforoposter.bbcode.BbCodeTagDefinition.HtmlNodeMapper.HtmlMappingException;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -101,5 +102,29 @@ public class BbCodeAst {
 	}
 	
 	@Getter
-	private final BbCodeAstNodeRoot rootNode;
+	protected final BbCodeAstNodeRoot rootNode;
+	
+	public String mapToHtmlString() {
+		return mapNodeToHtmlString(rootNode);
+	}
+	
+	protected String mapNodeToHtmlString(BbCodeAstNode node) {
+		if (node instanceof BbCodeAstNodeText) {
+			return ((BbCodeAstNodeText) node).getText();
+		}
+		
+		StringBuilder innerHtmlStringBuilder = new StringBuilder();
+		for (BbCodeAstNode childNode : node.getChildren()) {
+			innerHtmlStringBuilder.append(mapNodeToHtmlString(childNode));
+		}
+		if (node instanceof BbCodeAstNodeTag) {
+			BbCodeAstNodeTag tagNode = (BbCodeAstNodeTag) node;
+			try {
+				return tagNode.getTagDefinition().mapNode(tagNode.getParameters(), innerHtmlStringBuilder.toString());
+			} catch (HtmlMappingException e) {
+				return innerHtmlStringBuilder.toString();
+			}
+		}
+		return innerHtmlStringBuilder.toString();
+	}
 }

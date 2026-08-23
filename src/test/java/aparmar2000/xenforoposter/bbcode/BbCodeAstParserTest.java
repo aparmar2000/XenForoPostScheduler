@@ -34,10 +34,10 @@ class BbCodeAstParserTest {
 
 	private BbCodeAstParser parser;
 
-	private final BbCodeTagDefinition boldTag = new BbCodeTagDefinition("B", true);
-	private final BbCodeTagDefinition italicTag = new BbCodeTagDefinition("I", true);
-	private final BbCodeTagDefinition codeTag = new BbCodeTagDefinition("CODE", false);
-	private final BbCodeTagDefinition colorTag = new BbCodeTagDefinition("COLOR", true);
+	private final BbCodeTagDefinition boldTag = new BbCodeTagDefinition("B", true, null);
+	private final BbCodeTagDefinition italicTag = new BbCodeTagDefinition("I", true, null);
+	private final BbCodeTagDefinition codeTag = new BbCodeTagDefinition("CODE", false, null);
+	private final BbCodeTagDefinition colorTag = new BbCodeTagDefinition("COLOR", true, null);
 
 	@BeforeEach
 	void setUp() {
