@@ -186,10 +186,10 @@ class DefaultTagDefinitionsTest {
 			// Register custom HTML tag
 			HtmlTagDefinition badgeHtml = new HtmlTagDefinition("badge", true, false,
 					(tagDef, params, innerText) -> "<span class=\"badge badge-" + params.getOrDefault("type", "primary") + "\">" + innerText + "</span>");
-			htmlRegistry.register(badgeHtml);
+			htmlRegistry.register(TagSource.of("ext-badge"), badgeHtml);
 
 			// Register custom BBCode tag [BADGE=warning]Alert[/BADGE]
-			bbCodeRegistry.register(new BbCodeTagDefinition("BADGE", true,
+			bbCodeRegistry.register(TagSource.of("ext-badge"), new BbCodeTagDefinition("BADGE", true,
 					(tagDef, params, childNodes) -> {
 						String type = params.get(BbCodeAst.BbCodeAstNodeTag.ROOT_PARAMETER_NAME);
 						ImmutableMap<String, String> htmlParams = type != null

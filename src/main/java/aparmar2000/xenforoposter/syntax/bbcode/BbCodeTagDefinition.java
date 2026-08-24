@@ -5,18 +5,31 @@ import java.util.List;
 import com.google.common.collect.ImmutableMap;
 
 import aparmar2000.xenforoposter.syntax.AbstractAst;
+import aparmar2000.xenforoposter.syntax.TagDefinition;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinition.HtmlNodeMapper.HtmlMappingException;
 import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNode;
 import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeTag;
 import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinition;
-import lombok.Value;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.experimental.FieldDefaults;
 
-@Value
-public class BbCodeTagDefinition {
-	String tag;
+@Getter
+@FieldDefaults(makeFinal=true, level=AccessLevel.PRIVATE)
+@ToString
+@EqualsAndHashCode(callSuper = true)
+public class BbCodeTagDefinition extends TagDefinition {
 	boolean allowsInnerTags;
 	
 	HtmlNodeMapper htmlMapper;
+	
+	public BbCodeTagDefinition(String tag, boolean allowsInnerTags, HtmlNodeMapper htmlMapper) {
+		super(tag);
+		this.allowsInnerTags = allowsInnerTags;
+		this.htmlMapper = htmlMapper;
+	}
 	
 	public HtmlAstNode mapNode(ImmutableMap<String, String> parameters, List<HtmlAstNode> htmlChildNodes) throws HtmlMappingException {
 		return htmlMapper.mapNode(this, parameters, htmlChildNodes);

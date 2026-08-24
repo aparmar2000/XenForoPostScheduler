@@ -21,6 +21,7 @@ import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNode;
 import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeRoot;
 import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeTag;
 import aparmar2000.xenforoposter.syntax.html.HtmlAst.HtmlAstNodeText;
+import aparmar2000.xenforoposter.syntax.TagSource;
 import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinition;
 
 @DisplayName("BbCodeAst HTML Mapping Tests (mapToHtmlString and mapToHtmlAst)")
@@ -417,14 +418,14 @@ class BbCodeAstHtmlMappingTest {
 		@BeforeEach
 		void initPipeline() {
 			registry = new BbCodeTagDefinitionRegistry();
-			registry.register(boldTag);
-			registry.register(italicTag);
-			registry.register(underlineTag);
-			registry.register(colorTag);
-			registry.register(urlTag);
-			registry.register(quoteTag);
-			registry.register(codeTag);
-			registry.register(hrTag);
+			registry.register(TagSource.CORE, boldTag);
+			registry.register(TagSource.CORE, italicTag);
+			registry.register(TagSource.CORE, underlineTag);
+			registry.register(TagSource.CORE, colorTag);
+			registry.register(TagSource.CORE, urlTag);
+			registry.register(TagSource.CORE, quoteTag);
+			registry.register(TagSource.CORE, codeTag);
+			registry.register(TagSource.CORE, hrTag);
 
 			tokenizer = new BbCodeTokenizer(registry);
 			parser = new BbCodeAstParser(registry, tokenizer);

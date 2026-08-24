@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import aparmar2000.xenforoposter.syntax.TagSource;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNode;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeTag;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAst.BbCodeAstNodeText;
@@ -38,17 +39,17 @@ class BbCodeAstParserIntegrationTest {
 	@BeforeEach
 	void setUp() {
 		registry = new BbCodeTagDefinitionRegistry();
-		registry.register(bTag);
-		registry.register(iTag);
-		registry.register(uTag);
-		registry.register(sTag);
-		registry.register(colorTag);
-		registry.register(sizeTag);
-		registry.register(urlTag);
-		registry.register(quoteTag);
-		registry.register(codeTag);
-		registry.register(icodeTag);
-		registry.register(attachTag);
+		registry.register(TagSource.CORE, bTag);
+		registry.register(TagSource.CORE, iTag);
+		registry.register(TagSource.CORE, uTag);
+		registry.register(TagSource.CORE, sTag);
+		registry.register(TagSource.CORE, colorTag);
+		registry.register(TagSource.CORE, sizeTag);
+		registry.register(TagSource.CORE, urlTag);
+		registry.register(TagSource.CORE, quoteTag);
+		registry.register(TagSource.CORE, codeTag);
+		registry.register(TagSource.CORE, icodeTag);
+		registry.register(TagSource.CORE, attachTag);
 
 		tokenizer = new BbCodeTokenizer(registry);
 		parser = new BbCodeAstParser(registry, tokenizer);

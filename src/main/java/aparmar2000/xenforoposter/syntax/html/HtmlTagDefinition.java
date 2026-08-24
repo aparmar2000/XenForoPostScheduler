@@ -2,15 +2,29 @@ package aparmar2000.xenforoposter.syntax.html;
 
 import com.google.common.collect.ImmutableMap;
 
-import lombok.Value;
+import aparmar2000.xenforoposter.syntax.TagDefinition;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.experimental.FieldDefaults;
 
-@Value
-public class HtmlTagDefinition {
-	String tag;
+@Getter
+@FieldDefaults(makeFinal=true, level=AccessLevel.PRIVATE)
+@ToString
+@EqualsAndHashCode(callSuper = true)
+public class HtmlTagDefinition extends TagDefinition {
 	boolean allowsInnerTags;
 	boolean innerTextRawRequired;
 	
 	HtmlStringMapper stringMapper;
+	
+	public HtmlTagDefinition(String tag, boolean allowsInnerTags, boolean innerTextRawRequired, HtmlStringMapper stringMapper) {
+		super(tag);
+		this.allowsInnerTags = allowsInnerTags;
+		this.innerTextRawRequired = innerTextRawRequired;
+		this.stringMapper = stringMapper;
+	}
 	
 	public String mapNode(ImmutableMap<String, String> parameters, String innerText) throws HtmlStringMapper.StringMappingException {
 		return stringMapper.mapNode(this, parameters, innerText);

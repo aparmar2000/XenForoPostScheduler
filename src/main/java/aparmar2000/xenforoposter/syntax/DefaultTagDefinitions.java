@@ -23,6 +23,7 @@ import lombok.NonNull;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DefaultTagDefinitions {
 
+	public static final TagSource DEFAULT_SOURCE = TagSource.CORE;
 	private static final Pattern SIZE_UNIT_PATTERN = Pattern.compile("^[0-9]+(?:px|pt)$", Pattern.CASE_INSENSITIVE);
 
 	public static void registerBaseTags(@NotNull BbCodeTagDefinitionRegistry bbCodeRegistry,
@@ -33,30 +34,30 @@ public final class DefaultTagDefinitions {
 
 	public static void registerBaseHtmlTags(@NonNull HtmlTagDefinitionRegistry htmlRegistry) {
 		// Formatting tags
-		htmlRegistry.register(HtmlTagDefinition.simpleHtmlTagWrapper("b", false));
-		htmlRegistry.register(HtmlTagDefinition.simpleHtmlTagWrapper("i", false));
-		htmlRegistry.register(HtmlTagDefinition.simpleHtmlTagWrapper("u", false));
-		htmlRegistry.register(HtmlTagDefinition.simpleHtmlTagWrapper("s", false));
+		htmlRegistry.register(DEFAULT_SOURCE, HtmlTagDefinition.simpleHtmlTagWrapper("b", false));
+		htmlRegistry.register(DEFAULT_SOURCE, HtmlTagDefinition.simpleHtmlTagWrapper("i", false));
+		htmlRegistry.register(DEFAULT_SOURCE, HtmlTagDefinition.simpleHtmlTagWrapper("u", false));
+		htmlRegistry.register(DEFAULT_SOURCE, HtmlTagDefinition.simpleHtmlTagWrapper("s", false));
 
 		// Headings h1-h6
 		for (int h = 1; h <= 6; h++) {
 			final String headingTag = "h" + h;
-			htmlRegistry.register(new HtmlTagDefinition(headingTag, true, false,
+			htmlRegistry.register(DEFAULT_SOURCE, new HtmlTagDefinition(headingTag, true, false,
 					(tagDef, params, innerText) -> "<" + tagDef.getTag() + " class=\"bbcode-heading\">" + innerText + "</" + tagDef.getTag() + ">"));
 		}
 
 		// Structure & Layout
-		htmlRegistry.register(HtmlTagDefinition.simpleHtmlSingularTag("hr"));
-		htmlRegistry.register(new HtmlTagDefinition("hr-styled", false, false,
+		htmlRegistry.register(DEFAULT_SOURCE, HtmlTagDefinition.simpleHtmlSingularTag("hr"));
+		htmlRegistry.register(DEFAULT_SOURCE, new HtmlTagDefinition("hr-styled", false, false,
 				(tagDef, params, innerText) -> "<hr class=\"bbcode-hr\" />"));
 
-		htmlRegistry.register(new HtmlTagDefinition("div-align", true, false,
+		htmlRegistry.register(DEFAULT_SOURCE, new HtmlTagDefinition("div-align", true, false,
 				(tagDef, params, innerText) -> {
 					String align = params.getOrDefault("align", "left");
 					return "<div style=\"text-align: " + align + ";\">" + innerText + "</div>";
 				}));
 
-		htmlRegistry.register(new HtmlTagDefinition("div-indent", true, false,
+		htmlRegistry.register(DEFAULT_SOURCE, new HtmlTagDefinition("div-indent", true, false,
 				(tagDef, params, innerText) -> {
 					String levelStr = params.get("level");
 					int level = 1;
@@ -71,30 +72,30 @@ public final class DefaultTagDefinitions {
 					return "<div class=\"bbcode-indent\" style=\"margin-left: 20px;\">" + innerText + "</div>";
 				}));
 
-		htmlRegistry.register(new HtmlTagDefinition("div-article", true, false,
+		htmlRegistry.register(DEFAULT_SOURCE, new HtmlTagDefinition("div-article", true, false,
 				(tagDef, params, innerText) -> "<div class=\"bbcode-article\" style=\"border-left: 3px solid #007bff; padding: 6px 12px; margin: 8px 0;\">" + innerText + "</div>"));
 
 		// Text Styles (color, font, size)
-		htmlRegistry.register(new HtmlTagDefinition("span-color", true, false,
+		htmlRegistry.register(DEFAULT_SOURCE, new HtmlTagDefinition("span-color", true, false,
 				(tagDef, params, innerText) -> {
 					String color = params.getOrDefault("color", "inherit");
 					return "<span style=\"color: " + color + ";\">" + innerText + "</span>";
 				}));
 
-		htmlRegistry.register(new HtmlTagDefinition("span-font", true, false,
+		htmlRegistry.register(DEFAULT_SOURCE, new HtmlTagDefinition("span-font", true, false,
 				(tagDef, params, innerText) -> {
 					String font = params.getOrDefault("font", "inherit");
 					return "<span style=\"font-family: " + font + ";\">" + innerText + "</span>";
 				}));
 
-		htmlRegistry.register(new HtmlTagDefinition("span-size", true, false,
+		htmlRegistry.register(DEFAULT_SOURCE, new HtmlTagDefinition("span-size", true, false,
 				(tagDef, params, innerText) -> {
 					String size = params.getOrDefault("size", "inherit");
 					return "<span style=\"font-size: " + size + ";\">" + innerText + "</span>";
 				}));
 
 		// Links and Media
-		htmlRegistry.register(new HtmlTagDefinition("a", true, false,
+		htmlRegistry.register(DEFAULT_SOURCE, new HtmlTagDefinition("a", true, false,
 				(tagDef, params, innerText) -> {
 					String href = params.get("href");
 					if (href == null || href.isEmpty()) {
@@ -103,14 +104,14 @@ public final class DefaultTagDefinitions {
 					return "<a href=\"" + href + "\" target=\"_blank\">" + innerText + "</a>";
 				}));
 
-		htmlRegistry.register(new HtmlTagDefinition("img", false, true,
+		htmlRegistry.register(DEFAULT_SOURCE, new HtmlTagDefinition("img", false, true,
 				(tagDef, params, innerText) -> "<img src=\"" + innerText.trim() + "\" style=\"max-width: 100%; height: auto; border-radius: 4px;\" />"));
 
-		htmlRegistry.register(new HtmlTagDefinition("span-user", true, false,
+		htmlRegistry.register(DEFAULT_SOURCE, new HtmlTagDefinition("span-user", true, false,
 				(tagDef, params, innerText) -> "<span class=\"bbcode-user\">@" + innerText + "</span>"));
 
 		// Spoilers and Quotes
-		htmlRegistry.register(new HtmlTagDefinition("div-spoiler", true, false,
+		htmlRegistry.register(DEFAULT_SOURCE, new HtmlTagDefinition("div-spoiler", true, false,
 				(tagDef, params, innerText) -> {
 					String title = params.get("title");
 					if (title != null && !title.isEmpty()) {
@@ -119,10 +120,10 @@ public final class DefaultTagDefinitions {
 					return "<div class=\"bbcode-spoiler\"><div class=\"spoiler-title\">Spoiler</div><div class=\"spoiler-body\">" + innerText + "</div></div>";
 				}));
 
-		htmlRegistry.register(new HtmlTagDefinition("span-ispoiler", true, false,
+		htmlRegistry.register(DEFAULT_SOURCE, new HtmlTagDefinition("span-ispoiler", true, false,
 				(tagDef, params, innerText) -> "<span class=\"bbcode-ispoiler\" style=\"background-color: #555; color: #555; border-radius: 2px; padding: 0 4px;\" title=\"Spoiler\">" + innerText + "</span>"));
 
-		htmlRegistry.register(new HtmlTagDefinition("blockquote-quote", true, false,
+		htmlRegistry.register(DEFAULT_SOURCE, new HtmlTagDefinition("blockquote-quote", true, false,
 				(tagDef, params, innerText) -> {
 					String author = params.get("author");
 					if (author != null && !author.isEmpty()) {
@@ -132,7 +133,7 @@ public final class DefaultTagDefinitions {
 				}));
 
 		// Code blocks and inline code
-		htmlRegistry.register(new HtmlTagDefinition("pre-code", false, false,
+		htmlRegistry.register(DEFAULT_SOURCE, new HtmlTagDefinition("pre-code", false, false,
 				(tagDef, params, innerText) -> {
 					String lang = params.get("lang");
 					String header = (lang != null && !lang.isEmpty())
@@ -141,22 +142,22 @@ public final class DefaultTagDefinitions {
 					return "<pre class=\"bbcode-code\">" + header + "<code>" + innerText.trim() + "</code></pre>";
 				}));
 
-		htmlRegistry.register(new HtmlTagDefinition("code-icode", false, false,
+		htmlRegistry.register(DEFAULT_SOURCE, new HtmlTagDefinition("code-icode", false, false,
 				(tagDef, params, innerText) -> "<code class=\"bbcode-icode\">" + innerText + "</code>"));
 
 		// Tables
-		htmlRegistry.register(new HtmlTagDefinition("table", true, false,
+		htmlRegistry.register(DEFAULT_SOURCE, new HtmlTagDefinition("table", true, false,
 				(tagDef, params, innerText) -> "<table class=\"bbcode-table\">" + innerText + "</table>"));
-		htmlRegistry.register(HtmlTagDefinition.simpleHtmlTagWrapper("tr", false));
-		htmlRegistry.register(HtmlTagDefinition.simpleHtmlTagWrapper("th", false));
-		htmlRegistry.register(HtmlTagDefinition.simpleHtmlTagWrapper("td", false));
+		htmlRegistry.register(DEFAULT_SOURCE, HtmlTagDefinition.simpleHtmlTagWrapper("tr", false));
+		htmlRegistry.register(DEFAULT_SOURCE, HtmlTagDefinition.simpleHtmlTagWrapper("th", false));
+		htmlRegistry.register(DEFAULT_SOURCE, HtmlTagDefinition.simpleHtmlTagWrapper("td", false));
 
 		// Lists
-		htmlRegistry.register(new HtmlTagDefinition("ul", true, false,
+		htmlRegistry.register(DEFAULT_SOURCE, new HtmlTagDefinition("ul", true, false,
 				(tagDef, params, innerText) -> "<ul class=\"bbcode-list\">" + innerText + "</ul>"));
-		htmlRegistry.register(new HtmlTagDefinition("ol", true, false,
+		htmlRegistry.register(DEFAULT_SOURCE, new HtmlTagDefinition("ol", true, false,
 				(tagDef, params, innerText) -> "<ol class=\"bbcode-list\">" + innerText + "</ol>"));
-		htmlRegistry.register(HtmlTagDefinition.simpleHtmlTagWrapper("li", false));
+		htmlRegistry.register(DEFAULT_SOURCE, HtmlTagDefinition.simpleHtmlTagWrapper("li", false));
 	}
 
 	public static void registerBaseBbCodeTags(@NonNull BbCodeTagDefinitionRegistry bbCodeRegistry,
@@ -164,23 +165,23 @@ public final class DefaultTagDefinitions {
 		// Basic formatting
 		HtmlTagDefinition bHtml = htmlRegistry.getByTagString("b");
 		if (bHtml != null) {
-			bbCodeRegistry.register(BbCodeTagDefinition.simpleHtmlTagWrapper("B", bHtml));
+			bbCodeRegistry.register(DEFAULT_SOURCE, BbCodeTagDefinition.simpleHtmlTagWrapper("B", bHtml));
 		}
 		HtmlTagDefinition iHtml = htmlRegistry.getByTagString("i");
 		if (iHtml != null) {
-			bbCodeRegistry.register(BbCodeTagDefinition.simpleHtmlTagWrapper("I", iHtml));
+			bbCodeRegistry.register(DEFAULT_SOURCE, BbCodeTagDefinition.simpleHtmlTagWrapper("I", iHtml));
 		}
 		HtmlTagDefinition uHtml = htmlRegistry.getByTagString("u");
 		if (uHtml != null) {
-			bbCodeRegistry.register(BbCodeTagDefinition.simpleHtmlTagWrapper("U", uHtml));
+			bbCodeRegistry.register(DEFAULT_SOURCE, BbCodeTagDefinition.simpleHtmlTagWrapper("U", uHtml));
 		}
 		HtmlTagDefinition sHtml = htmlRegistry.getByTagString("s");
 		if (sHtml != null) {
-			bbCodeRegistry.register(BbCodeTagDefinition.simpleHtmlTagWrapper("S", sHtml));
+			bbCodeRegistry.register(DEFAULT_SOURCE, BbCodeTagDefinition.simpleHtmlTagWrapper("S", sHtml));
 		}
 
 		// Headings
-		bbCodeRegistry.register(new BbCodeTagDefinition("HEADING", true,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("HEADING", true,
 				(tagDef, params, childNodes) -> {
 					String levelStr = params.get(BbCodeAstNodeTag.ROOT_PARAMETER_NAME);
 					int level = 1;
@@ -199,7 +200,7 @@ public final class DefaultTagDefinitions {
 
 		// Color
 		HtmlTagDefinition colorHtml = htmlRegistry.getByTagString("span-color");
-		bbCodeRegistry.register(new BbCodeTagDefinition("COLOR", true,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("COLOR", true,
 				(tagDef, params, childNodes) -> {
 					String color = cleanQuotes(params.get(BbCodeAstNodeTag.ROOT_PARAMETER_NAME));
 					ImmutableMap<String, String> htmlParams = color != null
@@ -210,7 +211,7 @@ public final class DefaultTagDefinitions {
 
 		// Font
 		HtmlTagDefinition fontHtml = htmlRegistry.getByTagString("span-font");
-		bbCodeRegistry.register(new BbCodeTagDefinition("FONT", true,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("FONT", true,
 				(tagDef, params, childNodes) -> {
 					String font = cleanQuotes(params.get(BbCodeAstNodeTag.ROOT_PARAMETER_NAME));
 					ImmutableMap<String, String> htmlParams = font != null
@@ -221,7 +222,7 @@ public final class DefaultTagDefinitions {
 
 		// Size
 		HtmlTagDefinition sizeHtml = htmlRegistry.getByTagString("span-size");
-		bbCodeRegistry.register(new BbCodeTagDefinition("SIZE", true,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("SIZE", true,
 				(tagDef, params, childNodes) -> {
 					String sizeVal = cleanQuotes(params.get(BbCodeAstNodeTag.ROOT_PARAMETER_NAME));
 					String mappedSize = mapSizeToCss(sizeVal);
@@ -233,13 +234,13 @@ public final class DefaultTagDefinitions {
 
 		// Alignments
 		HtmlTagDefinition alignHtml = htmlRegistry.getByTagString("div-align");
-		bbCodeRegistry.register(new BbCodeTagDefinition("CENTER", true,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("CENTER", true,
 				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(alignHtml, ImmutableMap.of("align", "center")), childNodes)));
-		bbCodeRegistry.register(new BbCodeTagDefinition("LEFT", true,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("LEFT", true,
 				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(alignHtml, ImmutableMap.of("align", "left")), childNodes)));
-		bbCodeRegistry.register(new BbCodeTagDefinition("RIGHT", true,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("RIGHT", true,
 				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(alignHtml, ImmutableMap.of("align", "right")), childNodes)));
-		bbCodeRegistry.register(new BbCodeTagDefinition("ALIGN", true,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("ALIGN", true,
 				(tagDef, params, childNodes) -> {
 					String align = cleanQuotes(params.get(BbCodeAstNodeTag.ROOT_PARAMETER_NAME));
 					if (align == null || align.isEmpty()) { align = "left"; }
@@ -248,7 +249,7 @@ public final class DefaultTagDefinitions {
 
 		// Indentation
 		HtmlTagDefinition indentHtml = htmlRegistry.getByTagString("div-indent");
-		bbCodeRegistry.register(new BbCodeTagDefinition("INDENT", true,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("INDENT", true,
 				(tagDef, params, childNodes) -> {
 					String level = cleanQuotes(params.get(BbCodeAstNodeTag.ROOT_PARAMETER_NAME));
 					ImmutableMap<String, String> htmlParams = level != null
@@ -259,7 +260,7 @@ public final class DefaultTagDefinitions {
 
 		// URLs
 		HtmlTagDefinition aHtml = htmlRegistry.getByTagString("a");
-		bbCodeRegistry.register(new BbCodeTagDefinition("URL", true,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("URL", true,
 				(tagDef, params, childNodes) -> {
 					String href = cleanQuotes(params.get(BbCodeAstNodeTag.ROOT_PARAMETER_NAME));
 					ImmutableMap<String, String> htmlParams = href != null
@@ -270,27 +271,27 @@ public final class DefaultTagDefinitions {
 
 		// Images
 		HtmlTagDefinition imgHtml = htmlRegistry.getByTagString("img");
-		bbCodeRegistry.register(new BbCodeTagDefinition("IMG", false,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("IMG", false,
 				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(imgHtml, ImmutableMap.of()), childNodes)));
 
 		// User mentions
 		HtmlTagDefinition userHtml = htmlRegistry.getByTagString("span-user");
-		bbCodeRegistry.register(new BbCodeTagDefinition("USER", true,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("USER", true,
 				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(userHtml, ImmutableMap.of()), childNodes)));
 
 		// Articles
 		HtmlTagDefinition articleHtml = htmlRegistry.getByTagString("div-article");
-		bbCodeRegistry.register(new BbCodeTagDefinition("ARTICLE", true,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("ARTICLE", true,
 				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(articleHtml, ImmutableMap.of()), childNodes)));
 
 		// Horizontal rule
 		HtmlTagDefinition hrHtml = htmlRegistry.getByTagString("hr-styled");
-		bbCodeRegistry.register(new BbCodeTagDefinition("HR", false,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("HR", false,
 				(tagDef, params, childNodes) -> new HtmlAstNodeTag(hrHtml, ImmutableMap.of())));
 
 		// Spoilers
 		HtmlTagDefinition spoilerHtml = htmlRegistry.getByTagString("div-spoiler");
-		bbCodeRegistry.register(new BbCodeTagDefinition("SPOILER", true,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("SPOILER", true,
 				(tagDef, params, childNodes) -> {
 					String title = cleanQuotes(params.get(BbCodeAstNodeTag.ROOT_PARAMETER_NAME));
 					ImmutableMap<String, String> htmlParams = title != null
@@ -300,12 +301,12 @@ public final class DefaultTagDefinitions {
 				}));
 
 		HtmlTagDefinition ispoilerHtml = htmlRegistry.getByTagString("span-ispoiler");
-		bbCodeRegistry.register(new BbCodeTagDefinition("ISPOILER", true,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("ISPOILER", true,
 				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(ispoilerHtml, ImmutableMap.of()), childNodes)));
 
 		// Quotes
 		HtmlTagDefinition quoteHtml = htmlRegistry.getByTagString("blockquote-quote");
-		bbCodeRegistry.register(new BbCodeTagDefinition("QUOTE", true,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("QUOTE", true,
 				(tagDef, params, childNodes) -> {
 					String author = cleanQuotes(params.get(BbCodeAstNodeTag.ROOT_PARAMETER_NAME));
 					if (author == null) {
@@ -319,7 +320,7 @@ public final class DefaultTagDefinitions {
 
 		// Code blocks
 		HtmlTagDefinition codeHtml = htmlRegistry.getByTagString("pre-code");
-		bbCodeRegistry.register(new BbCodeTagDefinition("CODE", false,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("CODE", false,
 				(tagDef, params, childNodes) -> {
 					String lang = cleanQuotes(params.get(BbCodeAstNodeTag.ROOT_PARAMETER_NAME));
 					ImmutableMap<String, String> htmlParams = lang != null
@@ -329,21 +330,21 @@ public final class DefaultTagDefinitions {
 				}));
 
 		HtmlTagDefinition icodeHtml = htmlRegistry.getByTagString("code-icode");
-		bbCodeRegistry.register(new BbCodeTagDefinition("ICODE", false,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("ICODE", false,
 				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(icodeHtml, ImmutableMap.of()), childNodes)));
 
 		// Tables
 		HtmlTagDefinition tableHtml = htmlRegistry.getByTagString("table");
-		bbCodeRegistry.register(new BbCodeTagDefinition("TABLE", true,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("TABLE", true,
 				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(tableHtml, ImmutableMap.of()), filterWhitespaceNodes(childNodes))));
 		HtmlTagDefinition trHtml = htmlRegistry.getByTagString("tr");
-		bbCodeRegistry.register(new BbCodeTagDefinition("TR", true,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("TR", true,
 				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(trHtml, ImmutableMap.of()), filterWhitespaceNodes(childNodes))));
 		HtmlTagDefinition thHtml = htmlRegistry.getByTagString("th");
-		bbCodeRegistry.register(new BbCodeTagDefinition("TH", true,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("TH", true,
 				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(thHtml, ImmutableMap.of()), childNodes)));
 		HtmlTagDefinition tdHtml = htmlRegistry.getByTagString("td");
-		bbCodeRegistry.register(new BbCodeTagDefinition("TD", true,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("TD", true,
 				(tagDef, params, childNodes) -> AbstractAst.wrap(new HtmlAstNodeTag(tdHtml, ImmutableMap.of()), childNodes)));
 
 		// Lists
@@ -351,7 +352,7 @@ public final class DefaultTagDefinitions {
 		HtmlTagDefinition olHtml = htmlRegistry.getByTagString("ol");
 		HtmlTagDefinition liHtml = htmlRegistry.getByTagString("li");
 
-		bbCodeRegistry.register(new BbCodeTagDefinition("LIST", true,
+		bbCodeRegistry.register(DEFAULT_SOURCE, new BbCodeTagDefinition("LIST", true,
 				(tagDef, params, childNodes) -> {
 					String rootVal = cleanQuotes(params.get(BbCodeAstNodeTag.ROOT_PARAMETER_NAME));
 					boolean ordered = "1".equals(rootVal);
@@ -423,7 +424,6 @@ public final class DefaultTagDefinitions {
 		}
 		return s.substring(start, end);
 	}
-
 
 	private static String cleanQuotes(String val) {
 		if (val == null) { return null; }

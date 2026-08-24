@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
+import aparmar2000.xenforoposter.syntax.TagSource;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTokenizer.ParsedToken;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTokenizer.TagToken;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTokenizer.TextToken;
@@ -35,15 +36,15 @@ class BbCodeTokenizerTest {
 	@BeforeEach
 	void setUp() {
 		registry = new BbCodeTagDefinitionRegistry();
-		registry.register(bTag);
-		registry.register(iTag);
-		registry.register(uTag);
-		registry.register(cTag);
-		registry.register(codeTag);
-		registry.register(colorTag);
-		registry.register(urlTag);
-		registry.register(quoteTag);
-		registry.register(attachTag);
+		registry.register(TagSource.CORE, bTag);
+		registry.register(TagSource.CORE, iTag);
+		registry.register(TagSource.CORE, uTag);
+		registry.register(TagSource.CORE, cTag);
+		registry.register(TagSource.CORE, codeTag);
+		registry.register(TagSource.CORE, colorTag);
+		registry.register(TagSource.CORE, urlTag);
+		registry.register(TagSource.CORE, quoteTag);
+		registry.register(TagSource.CORE, attachTag);
 
 		tokenizer = new BbCodeTokenizer(registry);
 	}

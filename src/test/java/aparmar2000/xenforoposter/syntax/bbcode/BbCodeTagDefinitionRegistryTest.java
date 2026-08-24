@@ -9,15 +9,21 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import aparmar2000.xenforoposter.syntax.TagSource;
 import aparmar2000.xenforoposter.utils.CodePointTrie;
 import aparmar2000.xenforoposter.utils.CodePointTrie.CodePointTrieNode;
 
 class BbCodeTagDefinitionRegistryTest {
+
+	private static final TagSource SOURCE_CORE = TagSource.of("core");
+	private static final TagSource SOURCE_EXT_A = TagSource.of("ext-a");
+	private static final TagSource SOURCE_EXT_B = TagSource.of("ext-b");
 
 	private BbCodeTagDefinitionRegistry registry;
 
@@ -42,9 +48,9 @@ class BbCodeTagDefinitionRegistryTest {
 	@DisplayName("Registering a new tag definition updates registered set and trie")
 	void testRegisterTag() {
 		BbCodeTagDefinition bTag = new BbCodeTagDefinition("B", true, null);
-		boolean registered = registry.register(bTag);
+		BbCodeTagDefinition registered = registry.register(SOURCE_CORE, bTag);
 
-		assertTrue(registered);
+		assertSame(bTag, registered);
 		assertEquals(1, registry.getRegisteredTagDefinitions().size());
 		assertTrue(registry.getRegisteredTagDefinitions().contains(bTag));
 
@@ -56,14 +62,84 @@ class BbCodeTagDefinitionRegistryTest {
 	}
 
 	@Test
-	@DisplayName("Registering duplicate tag returns false and does not duplicate in set")
-	void testRegisterDuplicateTag() {
+	@DisplayName("Overwriting tag for the same source updates definition")
+	void testRegisterOverwriteSameSource() {
 		BbCodeTagDefinition bTag1 = new BbCodeTagDefinition("B", true, null);
-		BbCodeTagDefinition bTag2 = new BbCodeTagDefinition("B", true, null);
+		BbCodeTagDefinition bTag2 = new BbCodeTagDefinition("B", false, null);
 
-		assertTrue(registry.register(bTag1));
-		assertFalse(registry.register(bTag2));
+		registry.register(SOURCE_CORE, bTag1);
+		BbCodeTagDefinition result = registry.register(SOURCE_CORE, bTag2);
+
+		assertSame(bTag2, result);
 		assertEquals(1, registry.getRegisteredTagDefinitions().size());
+		assertTrue(registry.getRegisteredTagDefinitions().contains(bTag2));
+		assertFalse(registry.getRegisteredTagDefinitions().contains(bTag1));
+	}
+
+	@Test
+	@DisplayName("Multiple sources registering same tag follow canonical ordering")
+	void testMultipleSourcesCanonicalOrdering() {
+		// "core" < "ext-a" < "ext-b"
+		BbCodeTagDefinition coreTag = new BbCodeTagDefinition("B", true, null);
+		BbCodeTagDefinition extATag = new BbCodeTagDefinition("B", false, null);
+		BbCodeTagDefinition extBTag = new BbCodeTagDefinition("B", true, null);
+
+		registry.register(SOURCE_CORE, coreTag);
+		assertSame(coreTag, registry.getByTagString("B"));
+
+		// ext-a is greater than core in canonical order -> ext-a becomes active
+		registry.register(SOURCE_EXT_A, extATag);
+		assertSame(extATag, registry.getByTagString("B"));
+
+		// ext-b is greater than ext-a -> ext-b becomes active
+		registry.register(SOURCE_EXT_B, extBTag);
+		assertSame(extBTag, registry.getByTagString("B"));
+		assertEquals(1, registry.getRegisteredTagDefinitions().size());
+
+		// Unregister ext-b -> falls back to ext-a
+		assertTrue(registry.unregister(SOURCE_EXT_B, "B"));
+		assertSame(extATag, registry.getByTagString("B"));
+
+		// Unregister ext-a -> falls back to core
+		assertTrue(registry.unregister(SOURCE_EXT_A, extATag));
+		assertSame(coreTag, registry.getByTagString("B"));
+
+		// Unregister core -> tag removed completely
+		assertTrue(registry.unregister(SOURCE_CORE, "B"));
+		assertNull(registry.getByTagString("B"));
+		assertTrue(registry.getRegisteredTagDefinitions().isEmpty());
+	}
+
+	@Test
+	@DisplayName("registerIfAbsent evaluates supplier when tag is absent")
+	void testRegisterIfAbsentWhenAbsent() {
+		AtomicBoolean supplierCalled = new AtomicBoolean(false);
+		BbCodeTagDefinition newDef = new BbCodeTagDefinition("CUSTOM", true, null);
+
+		BbCodeTagDefinition result = registry.registerIfAbsent(SOURCE_EXT_A, "CUSTOM", () -> {
+			supplierCalled.set(true);
+			return newDef;
+		});
+
+		assertTrue(supplierCalled.get());
+		assertSame(newDef, result);
+		assertSame(newDef, registry.getByTagString("CUSTOM"));
+	}
+
+	@Test
+	@DisplayName("registerIfAbsent does not evaluate supplier when tag is already present")
+	void testRegisterIfAbsentWhenPresent() {
+		BbCodeTagDefinition existing = new BbCodeTagDefinition("B", true, null);
+		registry.register(SOURCE_CORE, existing);
+
+		AtomicBoolean supplierCalled = new AtomicBoolean(false);
+		BbCodeTagDefinition result = registry.registerIfAbsent(SOURCE_EXT_A, "B", () -> {
+			supplierCalled.set(true);
+			return new BbCodeTagDefinition("B", false, null);
+		});
+
+		assertFalse(supplierCalled.get());
+		assertSame(existing, result);
 	}
 
 	@Test
@@ -72,11 +148,11 @@ class BbCodeTagDefinitionRegistryTest {
 		BbCodeTagDefinition bTag = new BbCodeTagDefinition("B", true, null);
 		BbCodeTagDefinition iTag = new BbCodeTagDefinition("I", true, null);
 
-		registry.register(bTag);
-		registry.register(iTag);
+		registry.register(SOURCE_CORE, bTag);
+		registry.register(SOURCE_CORE, iTag);
 		assertEquals(2, registry.getRegisteredTagDefinitions().size());
 
-		assertTrue(registry.unregister(bTag));
+		assertTrue(registry.unregister(SOURCE_CORE, bTag));
 		assertEquals(1, registry.getRegisteredTagDefinitions().size());
 		assertFalse(registry.getRegisteredTagDefinitions().contains(bTag));
 		assertTrue(registry.getRegisteredTagDefinitions().contains(iTag));
@@ -90,14 +166,15 @@ class BbCodeTagDefinitionRegistryTest {
 	@DisplayName("Unregistering non-existent tag returns false")
 	void testUnregisterNonExistentTag() {
 		BbCodeTagDefinition bTag = new BbCodeTagDefinition("B", true, null);
-		assertFalse(registry.unregister(bTag));
+		assertFalse(registry.unregister(SOURCE_CORE, bTag));
+		assertFalse(registry.unregister(SOURCE_CORE, "NONEXISTENT"));
 	}
 
 	@Test
 	@DisplayName("markTreeDirty resets cached trie and forces rebuild on next getTagTrie")
 	void testMarkTreeDirty() {
 		BbCodeTagDefinition bTag = new BbCodeTagDefinition("B", true, null);
-		registry.register(bTag);
+		registry.register(SOURCE_CORE, bTag);
 
 		CodePointTrie<BbCodeTagDefinition> firstTrie = registry.getTagTrie();
 		assertNotNull(firstTrie);
@@ -119,10 +196,10 @@ class BbCodeTagDefinitionRegistryTest {
 		BbCodeTagDefinition colorTag = new BbCodeTagDefinition("COLOR", true, null);
 		BbCodeTagDefinition quoteTag = new BbCodeTagDefinition("QUOTE", true, null);
 
-		registry.register(cTag);
-		registry.register(codeTag);
-		registry.register(colorTag);
-		registry.register(quoteTag);
+		registry.register(SOURCE_CORE, cTag);
+		registry.register(SOURCE_CORE, codeTag);
+		registry.register(SOURCE_CORE, colorTag);
+		registry.register(SOURCE_CORE, quoteTag);
 
 		CodePointTrie<BbCodeTagDefinition> trie = registry.getTagTrie();
 
@@ -179,9 +256,10 @@ class BbCodeTagDefinitionRegistryTest {
 			futures.add(executor.submit(() -> {
 				try {
 					startLatch.await();
+					TagSource source = TagSource.of("thread-" + threadId);
 					for (int j = 0; j < iterationsPerThread; j++) {
 						BbCodeTagDefinition tag = new BbCodeTagDefinition("TAG_" + threadId + "_" + j, true, null);
-						registry.register(tag);
+						registry.register(source, tag);
 						assertNotNull(registry.getTagTrie());
 						assertNotNull(registry.getRegisteredTagDefinitions());
 					}

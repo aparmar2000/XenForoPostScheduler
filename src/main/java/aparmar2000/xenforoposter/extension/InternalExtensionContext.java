@@ -3,6 +3,7 @@ package aparmar2000.xenforoposter.extension;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,6 +16,7 @@ import aparmar2000.xenforoposter.extension.condition.ConditionProvider;
 import aparmar2000.xenforoposter.extension.toolbar.BbCodeToolbarItem;
 import aparmar2000.xenforoposter.settings.SettingsHolder;
 import aparmar2000.xenforoposter.settings.defs.SettingDefinition;
+import aparmar2000.xenforoposter.syntax.TagSource;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinition;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinitionRegistry;
 import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinition;
@@ -27,19 +29,20 @@ public class InternalExtensionContext implements ExtensionContext {
 	private final Path dataDirectory;
 	@Getter
 	private final SettingsHolder settingsHolder;
-	@Getter
 	private final BbCodeTagDefinitionRegistry bbCodeTagDefinitionRegistry;
-	@Getter
 	private final HtmlTagDefinitionRegistry htmlTagDefinitionRegistry;
+	@Getter
+	private final TagSource tagSource;
 	private final List<BbCodeToolbarItem> toolbarItems = new ArrayList<>();
 	private final List<ConditionProvider> conditionProviders = new ArrayList<>();
 
 	public interface Factory {
-		InternalExtensionContext create(@NonNull Path dataDirectory);
+		InternalExtensionContext create(@NonNull Path dataDirectory, @NonNull String extensionId);
 	}
 
 	@Inject
 	public InternalExtensionContext(@Assisted @NonNull Path dataDirectory,
+			@Assisted @NonNull String extensionId,
 			@NonNull SettingsHolder.Factory settingsHolderFactory,
 			@NonNull BbCodeTagDefinitionRegistry bbCodeTagDefinitionRegistry,
 			@NonNull HtmlTagDefinitionRegistry htmlTagDefinitionRegistry) {
@@ -47,8 +50,10 @@ public class InternalExtensionContext implements ExtensionContext {
 		this.settingsHolder = settingsHolderFactory.create(dataDirectory.resolve("settings.json"));
 		this.bbCodeTagDefinitionRegistry = bbCodeTagDefinitionRegistry;
 		this.htmlTagDefinitionRegistry = htmlTagDefinitionRegistry;
+		this.tagSource = TagSource.of(dataDirectory.getFileName() != null
+				? dataDirectory.getFileName().toString()
+				: "unknown");
 	}
-
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -107,12 +112,44 @@ public class InternalExtensionContext implements ExtensionContext {
 	}
 
 	@Override
-	public void registerBbCodeTag(@NonNull BbCodeTagDefinition tagDefinition) {
-		bbCodeTagDefinitionRegistry.register(tagDefinition);
+	public BbCodeTagDefinition registerBbCodeTag(@NonNull BbCodeTagDefinition tagDefinition) {
+		return bbCodeTagDefinitionRegistry.register(tagSource, tagDefinition);
+	}
+
+	@Override
+	public BbCodeTagDefinition registerBbCodeTagIfAbsent(@NonNull String tag,
+			@NonNull Supplier<BbCodeTagDefinition> supplier) {
+		return bbCodeTagDefinitionRegistry.registerIfAbsent(tagSource, tag, supplier);
+	}
+
+	@Override
+	public boolean unregisterBbCodeTag(@NonNull BbCodeTagDefinition tagDefinition) {
+		return bbCodeTagDefinitionRegistry.unregister(tagSource, tagDefinition);
+	}
+
+	@Override
+	public boolean unregisterBbCodeTag(@NonNull String tag) {
+		return bbCodeTagDefinitionRegistry.unregister(tagSource, tag);
 	}
 
 	@Override
 	public HtmlTagDefinition registerHtmlTag(@NonNull HtmlTagDefinition tagDefinition) {
-		return htmlTagDefinitionRegistry.register(tagDefinition);
+		return htmlTagDefinitionRegistry.register(tagSource, tagDefinition);
 	}
-}
+
+	@Override
+	public HtmlTagDefinition registerHtmlTagIfAbsent(@NonNull String tag,
+			@NonNull Supplier<HtmlTagDefinition> supplier) {
+		return htmlTagDefinitionRegistry.registerIfAbsent(tagSource, tag, supplier);
+	}
+
+	@Override
+	public boolean unregisterHtmlTag(@NonNull HtmlTagDefinition tagDefinition) {
+		return htmlTagDefinitionRegistry.unregister(tagSource, tagDefinition);
+	}
+
+	@Override
+	public boolean unregisterHtmlTag(@NonNull String tag) {
+		return htmlTagDefinitionRegistry.unregister(tagSource, tag);
+	}
+}
