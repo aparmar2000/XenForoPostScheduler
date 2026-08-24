@@ -71,7 +71,7 @@ public class ExtensionManager {
 
 		Path extDataDir = extensionsDir.resolve(extension.getId());
 		ExtensionHolder holder = new ExtensionHolder(extension, extDataDir,
-				ExtensionMetadata.builtIn(), contextFactory.create(extDataDir));
+				ExtensionMetadata.builtIn(), contextFactory.create(extDataDir, extension.getId()));
 		holder.setEnabled(true);
 		extensions.put(extension.getId(), holder);
 	}
@@ -125,7 +125,7 @@ public class ExtensionManager {
 									ExtensionHolder holder = new ExtensionHolder(extInstance,
 											extDataDir,
 											ExtensionMetadata.fromJar(jarFile),
-											contextFactory.create(extDataDir));
+											contextFactory.create(extDataDir, extInstance.getId()));
 									holder.setClassLoader(classLoader);
 									extensions.put(extInstance.getId(), holder);
 									holder.initialize();

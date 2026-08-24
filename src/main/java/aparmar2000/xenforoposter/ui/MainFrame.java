@@ -63,7 +63,8 @@ public class MainFrame extends JFrame {
 		this(UiPreviewHelper.createPreviewSchedulerEngine(),
 				UiPreviewHelper.createPreviewExtensionManager(),
 				UiPreviewHelper.createPreviewWebClient(),
-				UiPreviewHelper.createPreviewGeneralSettings());
+				UiPreviewHelper.createPreviewGeneralSettings(),
+				UiPreviewHelper.createPreviewBbCodePreviewRenderer());
 		if (schedulerEngine.isRunning()) {
 			schedulerEngine.stop();
 		}
@@ -73,7 +74,9 @@ public class MainFrame extends JFrame {
 	public MainFrame(@NotNull SchedulerEngine schedulerEngine,
 			@NotNull ExtensionManager extensionManager,
 			@NotNull XenForoWebClient webClient,
-			@NotNull GeneralSettings generalSettings) {
+			@NotNull GeneralSettings generalSettings,
+			@NotNull aparmar2000.xenforoposter.syntax.bbcode.BbCodePreviewRenderer previewRenderer) {
+
 		super("XenForo Post Scheduler");
 		this.schedulerEngine = schedulerEngine;
 		this.extensionManager = extensionManager;
@@ -90,7 +93,7 @@ public class MainFrame extends JFrame {
 		// Tabbed Panels
 		tabbedPane = new JTabbedPane();
 
-		postEditorPanel = new PostEditorFormPanel(schedulerEngine, extensionManager);
+		postEditorPanel = new PostEditorFormPanel(schedulerEngine, extensionManager, previewRenderer);
 		jobListPanel = new JobListPanel(schedulerEngine, job -> {
 			postEditorPanel.loadJobForEditing(job);
 			tabbedPane.setSelectedComponent(postEditorPanel);
@@ -100,6 +103,7 @@ public class MainFrame extends JFrame {
 		tabbedPane.addTab("Jobs & Diagnostics", jobListPanel);
 		tabbedPane.addTab("Post Composer & Scheduler", postEditorPanel);
 		tabbedPane.addTab("Forum Accounts", accountPanel);
+
 
 		// Status Bar at Bottom
 		JPanel statusBar = new JPanel(new BorderLayout(8, 2));

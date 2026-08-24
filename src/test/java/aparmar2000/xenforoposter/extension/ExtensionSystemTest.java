@@ -33,6 +33,10 @@ import aparmar2000.xenforoposter.settings.SettingsHolder;
 import aparmar2000.xenforoposter.settings.defs.BooleanSettingDefinition;
 import aparmar2000.xenforoposter.settings.defs.SettingDefinition;
 import aparmar2000.xenforoposter.settings.defs.StringSettingDefinition;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinition;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinitionRegistry;
+import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinition;
+import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinitionRegistry;
 import aparmar2000.xenforoposter.ui.ExtensionManagerPanel;
 import aparmar2000.xenforoposter.ui.ExtensionSettingsPanel;
 
@@ -46,7 +50,7 @@ class ExtensionSystemTest {
 	@BeforeEach
 	void setUp() {
 		contextFactory = mock(InternalExtensionContext.Factory.class);
-		when(contextFactory.create(any())).thenAnswer(inv -> {
+		when(contextFactory.create(any(), any())).thenAnswer(inv -> {
 			Path path = inv.getArgument(0);
 			SettingsHolder mockHolder = mock(SettingsHolder.class);
 			Map<String, Object> values = new ConcurrentHashMap<>();
@@ -73,10 +77,11 @@ class ExtensionSystemTest {
 			}).when(mockHolder).setSettingValue(anyString(), any());
 			SettingsHolder.Factory holderFactory = mock(SettingsHolder.Factory.class);
 			when(holderFactory.create(any())).thenReturn(mockHolder);
-			return new InternalExtensionContext(path, holderFactory);
+			return new InternalExtensionContext(path, "test.plugin", holderFactory, new BbCodeTagDefinitionRegistry(), new HtmlTagDefinitionRegistry());
 		});
 		extensionManager = new ExtensionManager(tempDir, new Gson(), contextFactory);
 	}
+
 
 	@Test
 	@DisplayName("Should register internal extension and execute toolbar item against mocked EditorContext")
@@ -284,7 +289,9 @@ class ExtensionSystemTest {
 		when(mockHolderFactory.create(any())).thenReturn(mockSettingsHolder);
 
 		Path extDir = tempDir.resolve("test_delegation");
-		InternalExtensionContext context = new InternalExtensionContext(extDir, mockHolderFactory);
+		InternalExtensionContext context = new InternalExtensionContext(extDir, "test.plugin", mockHolderFactory,
+				new BbCodeTagDefinitionRegistry(),
+				new HtmlTagDefinitionRegistry());
 
 		StringSettingDefinition strDef = new StringSettingDefinition("custom.key", "Custom Key", "Desc", "default_val", "Group");
 		context.registerSetting(strDef);
@@ -320,7 +327,10 @@ class ExtensionSystemTest {
 		when(mockHolderFactory.create(any())).thenReturn(mockSettingsHolder);
 
 		Path extDir = tempDir.resolve("test_misc");
-		InternalExtensionContext context = new InternalExtensionContext(extDir, mockHolderFactory);
+		InternalExtensionContext context = new InternalExtensionContext(extDir, "test.plugin", mockHolderFactory,
+				new BbCodeTagDefinitionRegistry(),
+				new HtmlTagDefinitionRegistry());
+
 
 		assertEquals(extDir, context.getDataDirectory());
 
@@ -344,7 +354,7 @@ class ExtensionSystemTest {
 		assertNotNull(injectedContextFactory);
 
 		Path extDir = tempDir.resolve("injected_ext");
-		InternalExtensionContext context = injectedContextFactory.create(extDir);
+		InternalExtensionContext context = injectedContextFactory.create(extDir, "test.plugin");
 		assertNotNull(context);
 		assertNotNull(context.getSettingsHolder());
 		assertEquals(extDir.resolve("settings.json"), context.getSettingsHolder().getSettingsFile());
@@ -361,5 +371,46 @@ class ExtensionSystemTest {
 		assertNotNull(holder.getContext());
 		assertEquals(Boolean.TRUE, holder.getContext().getSettingValue("enabled_feature", Boolean.class));
 	}
+
+	@Test
+	@DisplayName("Extensions can register custom BBCode and HTML tags via ExtensionContext")
+	void testExtensionTagRegistration() {
+		HtmlTagDefinitionRegistry htmlRegistry = new HtmlTagDefinitionRegistry();
+		BbCodeTagDefinitionRegistry bbCodeRegistry = new BbCodeTagDefinitionRegistry();
+		SettingsHolder.Factory mockHolderFactory = mock(SettingsHolder.Factory.class);
+		when(mockHolderFactory.create(any())).thenReturn(mock(SettingsHolder.class));
+
+		Path extDir = tempDir.resolve("tag_ext");
+		InternalExtensionContext context = new InternalExtensionContext(extDir, "test", mockHolderFactory, bbCodeRegistry, htmlRegistry);
+
+		assertEquals("tag_ext", context.getTagSource().getId());
+
+		HtmlTagDefinition customHtmlTag = HtmlTagDefinition.simpleHtmlTagWrapper("custom", false);
+		HtmlTagDefinition regHtml = context.registerHtmlTag(customHtmlTag);
+		assertSame(customHtmlTag, regHtml);
+		assertNotNull(htmlRegistry.getByTagString("custom"));
+
+		BbCodeTagDefinition customBbTag = BbCodeTagDefinition.simpleHtmlTagWrapper("CUSTOM", customHtmlTag);
+		BbCodeTagDefinition regBb = context.registerBbCodeTag(customBbTag);
+		assertSame(customBbTag, regBb);
+		assertTrue(bbCodeRegistry.getRegisteredTagDefinitions().contains(customBbTag));
+
+		// Test registerIfAbsent delegates
+		HtmlTagDefinition absHtml = context.registerHtmlTagIfAbsent("abs_html", () -> HtmlTagDefinition.simpleHtmlSingularTag("abs_html"));
+		assertNotNull(absHtml);
+		assertNotNull(htmlRegistry.getByTagString("abs_html"));
+
+		BbCodeTagDefinition absBb = context.registerBbCodeTagIfAbsent("ABS_BB", () -> BbCodeTagDefinition.simpleHtmlSingularTag("ABS_BB", absHtml));
+		assertNotNull(absBb);
+		assertNotNull(bbCodeRegistry.getByTagString("ABS_BB"));
+
+		// Test unregister delegates
+		assertTrue(context.unregisterHtmlTag(customHtmlTag));
+		assertNull(htmlRegistry.getByTagString("custom"));
+
+		assertTrue(context.unregisterBbCodeTag(customBbTag));
+		assertNull(bbCodeRegistry.getByTagString("CUSTOM"));
+	}
 }
+
 

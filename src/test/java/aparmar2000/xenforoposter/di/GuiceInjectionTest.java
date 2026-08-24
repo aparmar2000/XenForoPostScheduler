@@ -27,6 +27,11 @@ import aparmar2000.xenforoposter.security.CredentialEncryptionService;
 import aparmar2000.xenforoposter.security.SafetyRateLimiter;
 import aparmar2000.xenforoposter.security.SecureString;
 import aparmar2000.xenforoposter.settings.GeneralSettings;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAstParser;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodePreviewRenderer;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinitionRegistry;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTokenizer;
+import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinitionRegistry;
 import aparmar2000.xenforoposter.ui.MainFrame;
 import aparmar2000.xenforoposter.utils.GsonSupplier;
 import aparmar2000.xenforoposter.web.XenForoWebClient;
@@ -74,11 +79,27 @@ class GuiceInjectionTest {
 		SchedulerEngine schedulerEngine = injector.getInstance(SchedulerEngine.class);
 		assertNotNull(schedulerEngine);
 
+		HtmlTagDefinitionRegistry htmlRegistry = injector.getInstance(HtmlTagDefinitionRegistry.class);
+		assertNotNull(htmlRegistry);
+
+		BbCodeTagDefinitionRegistry bbCodeRegistry = injector.getInstance(BbCodeTagDefinitionRegistry.class);
+		assertNotNull(bbCodeRegistry);
+
+		BbCodeTokenizer tokenizer = injector.getInstance(BbCodeTokenizer.class);
+		assertNotNull(tokenizer);
+
+		BbCodeAstParser parser = injector.getInstance(BbCodeAstParser.class);
+		assertNotNull(parser);
+
+		BbCodePreviewRenderer previewRenderer = injector.getInstance(BbCodePreviewRenderer.class);
+		assertNotNull(previewRenderer);
+
 		if (!GraphicsEnvironment.isHeadless()) {
 			MainFrame mainFrame = injector.getInstance(MainFrame.class);
 			assertNotNull(mainFrame);
 		}
 	}
+
 
 	@Test
 	@DisplayName("CredentialEncryptionService and Gson should be shared singletons across injected components")

@@ -34,10 +34,11 @@ import org.jetbrains.annotations.Nullable;
 
 import com.formdev.flatlaf.FlatLaf;
 
-import aparmar2000.xenforoposter.bbcode.BbCodePreviewRenderer;
 import aparmar2000.xenforoposter.extension.ExtensionManager;
 import aparmar2000.xenforoposter.extension.toolbar.BbCodeToolbarItem;
 import aparmar2000.xenforoposter.extension.toolbar.EditorContext;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodePreviewRenderer;
+import lombok.NonNull;
 
 public class BbCodeEditorPanel extends JPanel {
 	private static final long serialVersionUID = 9000475208358345971L;
@@ -54,7 +55,7 @@ public class BbCodeEditorPanel extends JPanel {
 	private final JLabel statsLabel;
 	private final JLabel previewStatsLabel;
 
-	private final BbCodePreviewRenderer previewRenderer = new BbCodePreviewRenderer();
+	private final BbCodePreviewRenderer previewRenderer;
 	private final ExtensionManager extensionManager;
 
 	private boolean showingPreview = false;
@@ -67,14 +68,19 @@ public class BbCodeEditorPanel extends JPanel {
 	@Deprecated
 	@ApiStatus.Internal
 	public BbCodeEditorPanel() {
-		this(UiPreviewHelper.createPreviewExtensionManager());
+		this(UiPreviewHelper.createPreviewExtensionManager(), UiPreviewHelper.createPreviewBbCodePreviewRenderer());
 		if (textArea.getText().isEmpty()) {
 			setContent("[B]Sample Headline[/B]\n\nThis is a preview of the [COLOR=#007bff]BBCode editor[/COLOR] and live HTML renderer.\n\n[QUOTE=Preview]Formatted quote block[/QUOTE]");
 		}
 	}
 
 	public BbCodeEditorPanel(@NotNull ExtensionManager extensionManager) {
+		this(extensionManager, UiPreviewHelper.createPreviewBbCodePreviewRenderer());
+	}
+
+	public BbCodeEditorPanel(@NonNull ExtensionManager extensionManager, @NonNull BbCodePreviewRenderer previewRenderer) {
 		this.extensionManager = extensionManager;
+		this.previewRenderer = previewRenderer;
 		setLayout(new BorderLayout());
 
 		cardLayout = new CardLayout();
@@ -82,6 +88,7 @@ public class BbCodeEditorPanel extends JPanel {
 
 		// === Editor card
 		JPanel editorCard = new JPanel(new BorderLayout());
+
 
 		toolbarPanel = new JPanel(new BorderLayout());
 		rebuildToolbar();

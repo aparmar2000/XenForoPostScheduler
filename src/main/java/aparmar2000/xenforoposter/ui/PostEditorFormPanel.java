@@ -57,10 +57,14 @@ public class PostEditorFormPanel extends JPanel {
 	@Deprecated
 	@ApiStatus.Internal
 	public PostEditorFormPanel() {
-		this(UiPreviewHelper.createPreviewSchedulerEngine(), UiPreviewHelper.createPreviewExtensionManager());
+		this(UiPreviewHelper.createPreviewSchedulerEngine(), UiPreviewHelper.createPreviewExtensionManager(), UiPreviewHelper.createPreviewBbCodePreviewRenderer());
 	}
 
 	public PostEditorFormPanel(@NotNull SchedulerEngine schedulerEngine, @NotNull ExtensionManager extensionManager) {
+		this(schedulerEngine, extensionManager, UiPreviewHelper.createPreviewBbCodePreviewRenderer());
+	}
+
+	public PostEditorFormPanel(@NotNull SchedulerEngine schedulerEngine, @NotNull ExtensionManager extensionManager, @NotNull aparmar2000.xenforoposter.syntax.bbcode.BbCodePreviewRenderer previewRenderer) {
 		this.schedulerEngine = schedulerEngine;
 		setLayout(new BorderLayout(8, 8));
 		setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
@@ -119,7 +123,7 @@ public class PostEditorFormPanel extends JPanel {
 		metadataTabPanel.add(conditionBuilder, BorderLayout.CENTER);
 
 		// Second Tab: Post Editor & Preview (CardLayout based)
-		bbCodeEditor = new BbCodeEditorPanel(extensionManager);
+		bbCodeEditor = new BbCodeEditorPanel(extensionManager, previewRenderer);
 
 		// Bottom Tabbed Pane
 		tabbedPane = new JTabbedPane(SwingConstants.TOP);
@@ -128,6 +132,7 @@ public class PostEditorFormPanel extends JPanel {
 
 		// Bottom Action Bar
 		JPanel actionBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
+
 
 		JButton clearBtn = new JButton("Clear / New Job");
 		clearBtn.addActionListener(e -> resetForm());
