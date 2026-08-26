@@ -534,5 +534,184 @@ class BbCodeTokenizerTest {
 			assertEquals("\"\"", quoteToken.getParameterValue("author"));
 		}
 	}
+
+	@Nested
+	@DisplayName("Case-Insensitive Tag Tokenization Tests")
+	class CaseInsensitiveTokenizationTests {
+
+		@Test
+		@DisplayName("tokenizeString parses lowercase opening and ending tags")
+		void testTokenizeLowercaseTags() {
+			ImmutableList<ParsedToken> tokens = tokenizer.tokenizeString("Before [b]bold content[/b] after");
+
+			assertEquals(5, tokens.size());
+			assertEquals(new TextToken("Before "), tokens.get(0));
+
+			assertTrue(tokens.get(1) instanceof TagToken);
+			TagToken bOpen = (TagToken) tokens.get(1);
+			assertEquals("[b]", bOpen.getRawString());
+			assertEquals(bTag, bOpen.getTagDefinition());
+			assertFalse(bOpen.isEndingTag());
+
+			assertEquals(new TextToken("bold content"), tokens.get(2));
+
+			assertTrue(tokens.get(3) instanceof TagToken);
+			TagToken bClose = (TagToken) tokens.get(3);
+			assertEquals("[/b]", bClose.getRawString());
+			assertEquals(bTag, bClose.getTagDefinition());
+			assertTrue(bClose.isEndingTag());
+
+			assertEquals(new TextToken(" after"), tokens.get(4));
+		}
+
+		@Test
+		@DisplayName("tokenizeString parses mixed-case tags and preserves raw casing in token")
+		void testTokenizeMixedCaseTags() {
+			ImmutableList<ParsedToken> tokens = tokenizer.tokenizeString("[CoLoR=blue]Colored[/cOlOr]");
+
+			assertEquals(3, tokens.size());
+			assertTrue(tokens.get(0) instanceof TagToken);
+			TagToken colorOpen = (TagToken) tokens.get(0);
+			assertEquals("[CoLoR=blue]", colorOpen.getRawString());
+			assertEquals(colorTag, colorOpen.getTagDefinition());
+			assertEquals("blue", colorOpen.getRootParameter());
+
+			assertEquals(new TextToken("Colored"), tokens.get(1));
+
+			assertTrue(tokens.get(2) instanceof TagToken);
+			TagToken colorClose = (TagToken) tokens.get(2);
+			assertEquals("[/cOlOr]", colorClose.getRawString());
+			assertEquals(colorTag, colorClose.getTagDefinition());
+			assertTrue(colorClose.isEndingTag());
+		}
+
+		@Test
+		@DisplayName("tokenizeString parses mismatched case between opening and ending tags")
+		void testTokenizeMismatchedCaseTags() {
+			ImmutableList<ParsedToken> tokens = tokenizer.tokenizeString("[B]bold text[/b] and [quote author=Admin]quoted[/QUOTE]");
+
+			assertEquals(7, tokens.size());
+
+			// [B]
+			assertTrue(tokens.get(0) instanceof TagToken);
+			TagToken bOpen = (TagToken) tokens.get(0);
+			assertEquals("[B]", bOpen.getRawString());
+			assertEquals(bTag, bOpen.getTagDefinition());
+			assertFalse(bOpen.isEndingTag());
+
+			assertEquals(new TextToken("bold text"), tokens.get(1));
+
+			// [/b]
+			assertTrue(tokens.get(2) instanceof TagToken);
+			TagToken bClose = (TagToken) tokens.get(2);
+			assertEquals("[/b]", bClose.getRawString());
+			assertEquals(bTag, bClose.getTagDefinition());
+			assertTrue(bClose.isEndingTag());
+
+			assertEquals(new TextToken(" and "), tokens.get(3));
+
+			// [quote author=Admin]
+			assertTrue(tokens.get(4) instanceof TagToken);
+			TagToken quoteOpen = (TagToken) tokens.get(4);
+			assertEquals("[quote author=Admin]", quoteOpen.getRawString());
+			assertEquals(quoteTag, quoteOpen.getTagDefinition());
+			assertFalse(quoteOpen.isEndingTag());
+			assertEquals("Admin", quoteOpen.getParameterValue("author"));
+
+			assertEquals(new TextToken("quoted"), tokens.get(5));
+
+			// [/QUOTE]
+			assertTrue(tokens.get(6) instanceof TagToken);
+			TagToken quoteClose = (TagToken) tokens.get(6);
+			assertEquals("[/QUOTE]", quoteClose.getRawString());
+			assertEquals(quoteTag, quoteClose.getTagDefinition());
+			assertTrue(quoteClose.isEndingTag());
+		}
+
+		@Test
+		@DisplayName("tokenizeString parses nested mixed-case tags")
+		void testTokenizeNestedMixedCaseTags() {
+			ImmutableList<ParsedToken> tokens = tokenizer.tokenizeString("[b][I][u]Formatted[/U][/i][/B]");
+
+			assertEquals(7, tokens.size());
+			assertTrue(tokens.get(0) instanceof TagToken);
+			assertEquals(bTag, ((TagToken) tokens.get(0)).getTagDefinition());
+			assertEquals("[b]", tokens.get(0).getRawString());
+
+			assertTrue(tokens.get(1) instanceof TagToken);
+			assertEquals(iTag, ((TagToken) tokens.get(1)).getTagDefinition());
+			assertEquals("[I]", tokens.get(1).getRawString());
+
+			assertTrue(tokens.get(2) instanceof TagToken);
+			assertEquals(uTag, ((TagToken) tokens.get(2)).getTagDefinition());
+			assertEquals("[u]", tokens.get(2).getRawString());
+
+			assertEquals(new TextToken("Formatted"), tokens.get(3));
+
+			assertTrue(tokens.get(4) instanceof TagToken);
+			assertEquals(uTag, ((TagToken) tokens.get(4)).getTagDefinition());
+			assertTrue(((TagToken) tokens.get(4)).isEndingTag());
+
+			assertTrue(tokens.get(5) instanceof TagToken);
+			assertEquals(iTag, ((TagToken) tokens.get(5)).getTagDefinition());
+			assertTrue(((TagToken) tokens.get(5)).isEndingTag());
+
+			assertTrue(tokens.get(6) instanceof TagToken);
+			assertEquals(bTag, ((TagToken) tokens.get(6)).getTagDefinition());
+			assertTrue(((TagToken) tokens.get(6)).isEndingTag());
+		}
+
+		@Test
+		@DisplayName("tokenizeString disambiguates overlapping mixed-case tags")
+		void testTokenizeOverlappingMixedCaseTags() {
+			// Registered: C, CODE, COLOR
+			ImmutableList<ParsedToken> tokens = tokenizer.tokenizeString("[c]short[/C] [code=java]code[/CODE] [Color=blue]color[/cOlOr]");
+
+			assertEquals(11, tokens.size());
+			assertEquals(cTag, ((TagToken) tokens.get(0)).getTagDefinition());
+			assertEquals(cTag, ((TagToken) tokens.get(2)).getTagDefinition());
+			assertEquals(codeTag, ((TagToken) tokens.get(4)).getTagDefinition());
+			assertEquals("java", ((TagToken) tokens.get(4)).getRootParameter());
+			assertEquals(codeTag, ((TagToken) tokens.get(6)).getTagDefinition());
+			assertEquals(colorTag, ((TagToken) tokens.get(8)).getTagDefinition());
+			assertEquals("blue", ((TagToken) tokens.get(8)).getRootParameter());
+			assertEquals(colorTag, ((TagToken) tokens.get(10)).getTagDefinition());
+		}
+
+		@Test
+		@DisplayName("tokenizeString matches tags registered with mixed case")
+		void testTokenizeDynamicallyRegisteredMixedCaseTag() {
+			BbCodeTagDefinition spoilerTag = new BbCodeTagDefinition("Spoiler", true, null);
+			registry.register(TagSource.of("ext"), spoilerTag);
+
+			// Rebuild tokenizer with new registry state
+			BbCodeTokenizer customTokenizer = new BbCodeTokenizer(registry);
+
+			ImmutableList<ParsedToken> tokens = customTokenizer.tokenizeString("[SPOILER]hidden[/spoiler] and [spoiler]secret[/SPOILER]");
+			assertEquals(7, tokens.size());
+
+			assertTrue(tokens.get(0) instanceof TagToken);
+			assertEquals(spoilerTag, ((TagToken) tokens.get(0)).getTagDefinition());
+			assertEquals("[SPOILER]", tokens.get(0).getRawString());
+
+			assertEquals(new TextToken("hidden"), tokens.get(1));
+
+			assertTrue(tokens.get(2) instanceof TagToken);
+			assertEquals(spoilerTag, ((TagToken) tokens.get(2)).getTagDefinition());
+			assertEquals("[/spoiler]", tokens.get(2).getRawString());
+
+			assertEquals(new TextToken(" and "), tokens.get(3));
+
+			assertTrue(tokens.get(4) instanceof TagToken);
+			assertEquals(spoilerTag, ((TagToken) tokens.get(4)).getTagDefinition());
+			assertEquals("[spoiler]", tokens.get(4).getRawString());
+
+			assertEquals(new TextToken("secret"), tokens.get(5));
+
+			assertTrue(tokens.get(6) instanceof TagToken);
+			assertEquals(spoilerTag, ((TagToken) tokens.get(6)).getTagDefinition());
+			assertEquals("[/SPOILER]", tokens.get(6).getRawString());
+		}
+	}
 }
 
