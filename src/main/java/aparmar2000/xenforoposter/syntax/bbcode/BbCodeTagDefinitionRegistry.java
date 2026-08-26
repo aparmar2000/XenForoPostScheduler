@@ -28,7 +28,7 @@ public class BbCodeTagDefinitionRegistry extends TagDefinitionRegistry<BbCodeTag
 		try {
 			final CodePointTrie.Builder<BbCodeTagDefinition> tagTrieBuilder = new CodePointTrie.Builder<>();
 			for (BbCodeTagDefinition tagDefinition : activeTagNameIndex.values()) {
-				tagTrieBuilder.addValue(tagDefinition.getTag(), tagDefinition);
+				tagTrieBuilder.addValue(tagDefinition.getTag().toLowerCase(), tagDefinition);
 			}
 			tagTrie = tagTrieBuilder.build();
 		} finally {

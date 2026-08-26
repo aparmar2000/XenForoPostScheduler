@@ -183,7 +183,7 @@ public class BbCodeTokenizer {
 				} else if (codePoint == TAG_END_OPEN_CODE_POINT) {
 					buildingEndingTag = true;
 				} else {
-					currentTagNode = currentTagNode.getChild(codePoint);
+					currentTagNode = currentTagNode.getChild(Character.toLowerCase(codePoint));
 					if (currentTagNode == null) {
 						abortTag();
 					}
