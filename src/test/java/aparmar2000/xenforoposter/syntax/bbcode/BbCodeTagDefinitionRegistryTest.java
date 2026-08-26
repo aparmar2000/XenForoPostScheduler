@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import aparmar2000.xenforoposter.syntax.TagSource;
@@ -55,7 +56,7 @@ class BbCodeTagDefinitionRegistryTest {
 		assertTrue(registry.getRegisteredTagDefinitions().contains(bTag));
 
 		CodePointTrie<BbCodeTagDefinition> trie = registry.getTagTrie();
-		CodePointTrieNode<BbCodeTagDefinition> nodeB = trie.getRoot().getChild('B');
+		CodePointTrieNode<BbCodeTagDefinition> nodeB = trie.getRoot().getChild('b');
 		assertNotNull(nodeB);
 		assertTrue(nodeB.hasValue());
 		assertEquals(bTag, nodeB.getValue());
@@ -158,8 +159,8 @@ class BbCodeTagDefinitionRegistryTest {
 		assertTrue(registry.getRegisteredTagDefinitions().contains(iTag));
 
 		CodePointTrie<BbCodeTagDefinition> trie = registry.getTagTrie();
-		assertNull(trie.getRoot().getChild('B'));
-		assertNotNull(trie.getRoot().getChild('I'));
+		assertNull(trie.getRoot().getChild('b'));
+		assertNotNull(trie.getRoot().getChild('i'));
 	}
 
 	@Test
@@ -203,40 +204,40 @@ class BbCodeTagDefinitionRegistryTest {
 
 		CodePointTrie<BbCodeTagDefinition> trie = registry.getTagTrie();
 
-		// Check 'C'
-		CodePointTrieNode<BbCodeTagDefinition> nodeC = trie.getRoot().getChild('C');
+		// Check 'c'
+		CodePointTrieNode<BbCodeTagDefinition> nodeC = trie.getRoot().getChild('c');
 		assertNotNull(nodeC);
 		assertTrue(nodeC.hasValue());
 		assertEquals(cTag, nodeC.getValue());
 
-		// Check 'C' -> 'O' -> 'D' -> 'E'
-		CodePointTrieNode<BbCodeTagDefinition> nodeO = nodeC.getChild('O');
+		// Check 'c' -> 'o' -> 'd' -> 'e'
+		CodePointTrieNode<BbCodeTagDefinition> nodeO = nodeC.getChild('o');
 		assertNotNull(nodeO);
 		assertFalse(nodeO.hasValue());
 
-		CodePointTrieNode<BbCodeTagDefinition> nodeD = nodeO.getChild('D');
+		CodePointTrieNode<BbCodeTagDefinition> nodeD = nodeO.getChild('d');
 		assertNotNull(nodeD);
 		assertFalse(nodeD.hasValue());
 
-		CodePointTrieNode<BbCodeTagDefinition> nodeE = nodeD.getChild('E');
+		CodePointTrieNode<BbCodeTagDefinition> nodeE = nodeD.getChild('e');
 		assertNotNull(nodeE);
 		assertTrue(nodeE.hasValue());
 		assertEquals(codeTag, nodeE.getValue());
 
-		// Check 'C' -> 'O' -> 'L' -> 'O' -> 'R'
-		CodePointTrieNode<BbCodeTagDefinition> nodeL = nodeO.getChild('L');
+		// Check 'c' -> 'o' -> 'l' -> 'o' -> 'r'
+		CodePointTrieNode<BbCodeTagDefinition> nodeL = nodeO.getChild('l');
 		assertNotNull(nodeL);
-		CodePointTrieNode<BbCodeTagDefinition> nodeO2 = nodeL.getChild('O');
+		CodePointTrieNode<BbCodeTagDefinition> nodeO2 = nodeL.getChild('o');
 		assertNotNull(nodeO2);
-		CodePointTrieNode<BbCodeTagDefinition> nodeR = nodeO2.getChild('R');
+		CodePointTrieNode<BbCodeTagDefinition> nodeR = nodeO2.getChild('r');
 		assertNotNull(nodeR);
 		assertTrue(nodeR.hasValue());
 		assertEquals(colorTag, nodeR.getValue());
 
-		// Check 'Q' -> 'U' -> 'O' -> 'T' -> 'E'
-		CodePointTrieNode<BbCodeTagDefinition> nodeQ = trie.getRoot().getChild('Q');
+		// Check 'q' -> 'u' -> 'o' -> 't' -> 'e'
+		CodePointTrieNode<BbCodeTagDefinition> nodeQ = trie.getRoot().getChild('q');
 		assertNotNull(nodeQ);
-		CodePointTrieNode<BbCodeTagDefinition> nodeQuoteE = nodeQ.getChild('U').getChild('O').getChild('T').getChild('E');
+		CodePointTrieNode<BbCodeTagDefinition> nodeQuoteE = nodeQ.getChild('u').getChild('o').getChild('t').getChild('e');
 		assertNotNull(nodeQuoteE);
 		assertTrue(nodeQuoteE.hasValue());
 		assertEquals(quoteTag, nodeQuoteE.getValue());
@@ -277,5 +278,125 @@ class BbCodeTagDefinitionRegistryTest {
 
 		assertEquals(threadCount * iterationsPerThread, registry.getRegisteredTagDefinitions().size());
 		assertNotNull(registry.getTagTrie());
+	}
+
+	@Nested
+	@DisplayName("Case-Insensitive Registry Operations")
+	class CaseInsensitiveRegistryTests {
+
+		@Test
+		@DisplayName("Tag lookup by string is case-insensitive")
+		void testCaseInsensitiveGetByTagString() {
+			BbCodeTagDefinition boldTag = new BbCodeTagDefinition("B", true, null);
+			BbCodeTagDefinition colorTag = new BbCodeTagDefinition("COLOR", true, null);
+			registry.register(SOURCE_CORE, boldTag);
+			registry.register(SOURCE_CORE, colorTag);
+
+			assertSame(boldTag, registry.getByTagString("b"));
+			assertSame(boldTag, registry.getByTagString("B"));
+			assertSame(colorTag, registry.getByTagString("color"));
+			assertSame(colorTag, registry.getByTagString("COLOR"));
+			assertSame(colorTag, registry.getByTagString("Color"));
+			assertSame(colorTag, registry.getByTagString("cOlOr"));
+		}
+
+		@Test
+		@DisplayName("hasTag check is case-insensitive")
+		void testCaseInsensitiveHasTag() {
+			BbCodeTagDefinition quoteTag = new BbCodeTagDefinition("QUOTE", true, null);
+			registry.register(SOURCE_CORE, quoteTag);
+
+			assertTrue(registry.hasTag("quote"));
+			assertTrue(registry.hasTag("QUOTE"));
+			assertTrue(registry.hasTag("Quote"));
+			assertTrue(registry.hasTag(SOURCE_CORE, "quote"));
+			assertTrue(registry.hasTag(SOURCE_CORE, "QUOTE"));
+			assertTrue(registry.hasTag(SOURCE_CORE, "QuOtE"));
+			assertFalse(registry.hasTag("unknown"));
+			assertFalse(registry.hasTag(SOURCE_CORE, "unknown"));
+		}
+
+		@Test
+		@DisplayName("getDefinition and getDefinitionsForTag are case-insensitive")
+		void testCaseInsensitiveGetDefinitions() {
+			BbCodeTagDefinition coreDef = new BbCodeTagDefinition("CODE", false, null);
+			BbCodeTagDefinition extDef = new BbCodeTagDefinition("CODE", true, null);
+			registry.register(SOURCE_CORE, coreDef);
+			registry.register(SOURCE_EXT_A, extDef);
+
+			assertSame(coreDef, registry.getDefinition(SOURCE_CORE, "code"));
+			assertSame(coreDef, registry.getDefinition(SOURCE_CORE, "CODE"));
+			assertSame(coreDef, registry.getDefinition(SOURCE_CORE, "CoDe"));
+			assertSame(extDef, registry.getDefinition(SOURCE_EXT_A, "code"));
+			assertSame(extDef, registry.getDefinition(SOURCE_EXT_A, "CODE"));
+
+			assertEquals(2, registry.getDefinitionsForTag("code").size());
+			assertEquals(2, registry.getDefinitionsForTag("CODE").size());
+			assertEquals(2, registry.getDefinitionsForTag("CoDe").size());
+		}
+
+		@Test
+		@DisplayName("Unregistering with different casing removes tag definition and updates trie")
+		void testCaseInsensitiveUnregister() {
+			BbCodeTagDefinition bTag = new BbCodeTagDefinition("B", true, null);
+			BbCodeTagDefinition colorTag = new BbCodeTagDefinition("COLOR", true, null);
+			registry.register(SOURCE_CORE, bTag);
+			registry.register(SOURCE_CORE, colorTag);
+
+			// Unregister "b" using lowercase string when registered as uppercase "B"
+			assertTrue(registry.unregister(SOURCE_CORE, "b"));
+			assertNull(registry.getByTagString("B"));
+			assertNull(registry.getByTagString("b"));
+			assertNull(registry.getTagTrie().getRoot().getChild('b'));
+
+			// Unregister "COLOR" using mixed-case string "Color"
+			assertTrue(registry.unregister(SOURCE_CORE, "Color"));
+			assertNull(registry.getByTagString("COLOR"));
+			assertNull(registry.getByTagString("color"));
+		}
+
+		@Test
+		@DisplayName("registerIfAbsent respects case-insensitivity for existing and new tags")
+		void testCaseInsensitiveRegisterIfAbsent() {
+			BbCodeTagDefinition existing = new BbCodeTagDefinition("B", true, null);
+			registry.register(SOURCE_CORE, existing);
+
+			AtomicBoolean supplierCalled = new AtomicBoolean(false);
+			BbCodeTagDefinition result = registry.registerIfAbsent(SOURCE_EXT_A, "b", () -> {
+				supplierCalled.set(true);
+				return new BbCodeTagDefinition("b", false, null);
+			});
+
+			assertFalse(supplierCalled.get());
+			assertSame(existing, result);
+
+			// Now register new tag with mixed case key
+			BbCodeTagDefinition newDef = new BbCodeTagDefinition("Spoiler", true, null);
+			BbCodeTagDefinition registered = registry.registerIfAbsent(SOURCE_CORE, "sPoIlEr", () -> newDef);
+			assertSame(newDef, registered);
+			assertSame(newDef, registry.getByTagString("SPOILER"));
+			assertSame(newDef, registry.getByTagString("spoiler"));
+			assertNotNull(registry.getTagTrie().getRoot().getChild('s'));
+		}
+
+		@Test
+		@DisplayName("Trie builder builds lowercase trie nodes for mixed-case registered tags")
+		void testTrieLowercaseConstruction() {
+			BbCodeTagDefinition mixedTag = new BbCodeTagDefinition("MyCustomTag", true, null);
+			registry.register(SOURCE_CORE, mixedTag);
+
+			CodePointTrie<BbCodeTagDefinition> trie = registry.getTagTrie();
+			// Walk 'm' -> 'y' -> 'c' -> 'u' -> 's' -> 't' -> 'o' -> 'm' -> 't' -> 'a' -> 'g'
+			CodePointTrieNode<BbCodeTagDefinition> node = trie.getRoot();
+			for (char c : "mycustomtag".toCharArray()) {
+				node = node.getChild(c);
+				assertNotNull(node, "Trie should contain lowercase child for char: " + c);
+			}
+			assertTrue(node.hasValue());
+			assertSame(mixedTag, node.getValue());
+
+			// Trie root should not have uppercase 'M'
+			assertNull(trie.getRoot().getChild('M'));
+		}
 	}
 }

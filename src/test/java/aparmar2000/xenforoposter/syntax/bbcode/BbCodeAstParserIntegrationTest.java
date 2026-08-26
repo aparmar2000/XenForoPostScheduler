@@ -395,4 +395,74 @@ class BbCodeAstParserIntegrationTest {
 			assertEquals("Sky \uD83C\uDF0C", ((BbCodeAstNodeText) colorNode.getChildren().get(0)).getText());
 		}
 	}
+
+	@Nested
+	@DisplayName("End-to-End Case-Insensitive Tag Parsing Tests")
+	class CaseInsensitiveParsingIntegrationTests {
+
+		@Test
+		@DisplayName("Parses lowercase and mixed-case formatting tags into matching AST nodes")
+		void testLowercaseAndMixedCaseFormatting() {
+			BbCodeAst ast = parser.parseString("[b]Bold[/b] and [i]Italic[/I] and [CoLoR=red]Red[/color]");
+			List<BbCodeAstNode> children = ast.getRootNode().getChildren();
+
+			assertEquals(5, children.size());
+
+			assertTrue(children.get(0) instanceof BbCodeAstNodeTag);
+			BbCodeAstNodeTag bNode = (BbCodeAstNodeTag) children.get(0);
+			assertEquals(bTag, bNode.getTagDefinition());
+			assertArrayEquals(new String[] {"[b]", "[/b]"}, bNode.getRawString());
+			assertEquals("Bold", ((BbCodeAstNodeText) bNode.getChildren().get(0)).getText());
+
+			assertEquals(" and ", ((BbCodeAstNodeText) children.get(1)).getText());
+
+			assertTrue(children.get(2) instanceof BbCodeAstNodeTag);
+			BbCodeAstNodeTag iNode = (BbCodeAstNodeTag) children.get(2);
+			assertEquals(iTag, iNode.getTagDefinition());
+			assertArrayEquals(new String[] {"[i]", "[/I]"}, iNode.getRawString());
+			assertEquals("Italic", ((BbCodeAstNodeText) iNode.getChildren().get(0)).getText());
+
+			assertEquals(" and ", ((BbCodeAstNodeText) children.get(3)).getText());
+
+			assertTrue(children.get(4) instanceof BbCodeAstNodeTag);
+			BbCodeAstNodeTag colorNode = (BbCodeAstNodeTag) children.get(4);
+			assertEquals(colorTag, colorNode.getTagDefinition());
+			assertArrayEquals(new String[] {"[CoLoR=red]", "[/color]"}, colorNode.getRawString());
+			assertEquals("red", colorNode.getParameters().get(BbCodeAstNodeTag.ROOT_PARAMETER_NAME));
+			assertEquals("Red", ((BbCodeAstNodeText) colorNode.getChildren().get(0)).getText());
+		}
+
+		@Test
+		@DisplayName("Parses nested mixed-case tags (b -> I -> u)")
+		void testNestedMixedCaseTags() {
+			BbCodeAst ast = parser.parseString("[b][I][u]Nested content[/U][/i][/B]");
+			List<BbCodeAstNode> rootChildren = ast.getRootNode().getChildren();
+
+			assertEquals(1, rootChildren.size());
+			BbCodeAstNodeTag bNode = (BbCodeAstNodeTag) rootChildren.get(0);
+			assertEquals(bTag, bNode.getTagDefinition());
+
+			BbCodeAstNodeTag iNode = (BbCodeAstNodeTag) bNode.getChildren().get(0);
+			assertEquals(iTag, iNode.getTagDefinition());
+
+			BbCodeAstNodeTag uNode = (BbCodeAstNodeTag) iNode.getChildren().get(0);
+			assertEquals(uTag, uNode.getTagDefinition());
+
+			assertEquals("Nested content", ((BbCodeAstNodeText) uNode.getChildren().get(0)).getText());
+		}
+
+		@Test
+		@DisplayName("Parses non-nesting mixed-case tags (code/attach)")
+		void testNonNestingMixedCaseTags() {
+			BbCodeAst ast = parser.parseString("[CoDe=python]print([b]'hello'[/b])[/cOdE]");
+			List<BbCodeAstNode> rootChildren = ast.getRootNode().getChildren();
+
+			assertEquals(1, rootChildren.size());
+			BbCodeAstNodeTag codeNode = (BbCodeAstNodeTag) rootChildren.get(0);
+			assertEquals(codeTag, codeNode.getTagDefinition());
+			assertArrayEquals(new String[] {"[CoDe=python]", "[/cOdE]"}, codeNode.getRawString());
+			assertEquals("python", codeNode.getParameters().get(BbCodeAstNodeTag.ROOT_PARAMETER_NAME));
+			assertEquals("print([b]'hello'[/b])", ((BbCodeAstNodeText) codeNode.getChildren().get(0)).getText());
+		}
+	}
 }
