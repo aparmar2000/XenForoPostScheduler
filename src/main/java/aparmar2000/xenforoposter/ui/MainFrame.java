@@ -32,10 +32,13 @@ import com.formdev.flatlaf.FlatLightLaf;
 import com.google.inject.Inject;
 
 import aparmar2000.xenforoposter.extension.ExtensionManager;
+import aparmar2000.xenforoposter.model.ScheduledJob;
 import aparmar2000.xenforoposter.scheduler.SchedulerEngine;
 import aparmar2000.xenforoposter.settings.GeneralSettings;
 import aparmar2000.xenforoposter.utils.InternalResourceLoader;
 import aparmar2000.xenforoposter.web.XenForoWebClient;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 public class MainFrame extends JFrame {
 	private static final long serialVersionUID = 3227622158757362809L;
@@ -44,9 +47,9 @@ public class MainFrame extends JFrame {
 	private final ExtensionManager extensionManager;
 	private final GeneralSettings generalSettings;
 
-	private final JTabbedPane tabbedPane;
-	private final JobListPanel jobListPanel;
-	private final PostEditorFormPanel postEditorPanel;
+	@Getter(AccessLevel.PACKAGE) private final JTabbedPane tabbedPane;
+	@Getter(AccessLevel.PACKAGE) private final JobListPanel jobListPanel;
+	@Getter(AccessLevel.PACKAGE) private final PostEditorFormPanel postEditorPanel;
 	private final AccountManagerPanel accountPanel;
 
 	private final JLabel engineStatusLabel;
@@ -95,14 +98,34 @@ public class MainFrame extends JFrame {
 
 		postEditorPanel = new PostEditorFormPanel(schedulerEngine, extensionManager, previewRenderer);
 		jobListPanel = new JobListPanel(schedulerEngine, job -> {
-			postEditorPanel.loadJobForEditing(job);
-			tabbedPane.setSelectedComponent(postEditorPanel);
+			if (job.getStatus() != ScheduledJob.JobStatus.COMPLETED) {
+				tabbedPane.setEnabledAt(1, true);
+				postEditorPanel.loadJobForEditing(job);
+				tabbedPane.setSelectedComponent(postEditorPanel);
+			}
 		});
 		accountPanel = new AccountManagerPanel(schedulerEngine, webClient);
 
 		tabbedPane.addTab("Jobs & Diagnostics", jobListPanel);
 		tabbedPane.addTab("Post Composer & Scheduler", postEditorPanel);
 		tabbedPane.addTab("Forum Accounts", accountPanel);
+
+		// Post Composer tab starts disabled until a post is selected/created for editing
+		tabbedPane.setEnabledAt(1, false);
+
+		postEditorPanel.setEditorListener(new PostEditorFormPanel.PostEditorListener() {
+			@Override
+			public void onPostScheduled(@NotNull ScheduledJob job) {
+				tabbedPane.setEnabledAt(1, false);
+				tabbedPane.setSelectedComponent(jobListPanel);
+			}
+
+			@Override
+			public void onEditorCancelled() {
+				tabbedPane.setEnabledAt(1, false);
+				tabbedPane.setSelectedComponent(jobListPanel);
+			}
+		});
 
 
 		// Status Bar at Bottom

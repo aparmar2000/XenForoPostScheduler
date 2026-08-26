@@ -4,10 +4,13 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -27,9 +30,12 @@ import javax.swing.table.DefaultTableModel;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import aparmar2000.xenforoposter.model.JobPriority;
 import aparmar2000.xenforoposter.model.ScheduledJob;
 import aparmar2000.xenforoposter.model.conditions.PostCondition;
 import aparmar2000.xenforoposter.scheduler.SchedulerEngine;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 public class JobListPanel extends JPanel {
 	private static final long serialVersionUID = -7726194559699546924L;
@@ -38,13 +44,20 @@ public class JobListPanel extends JPanel {
 			.withZone(ZoneId.systemDefault());
 
 	private final SchedulerEngine schedulerEngine;
-	private final JTable jobTable;
+	@Getter(AccessLevel.PACKAGE) private final JTable jobTable;
 	private final DefaultTableModel tableModel;
 	private final JTextArea conditionSummaryArea;
 	private final PollLogPanel pollLogPanel;
 
 	private final List<ScheduledJob> currentJobs = new ArrayList<>();
 	private final JobEditCallback editCallback;
+
+	@Getter(AccessLevel.PACKAGE) private final JButton newPostBtn;
+	@Getter(AccessLevel.PACKAGE) private final JButton copyPostBtn;
+	@Getter(AccessLevel.PACKAGE) private final JButton editBtn;
+	@Getter(AccessLevel.PACKAGE) private final JButton pauseBtn;
+	@Getter(AccessLevel.PACKAGE) private final JButton triggerNowBtn;
+	@Getter(AccessLevel.PACKAGE) private final JButton deleteBtn;
 
 	public interface JobEditCallback {
 		void onEditJob(@NotNull ScheduledJob job);
@@ -82,7 +95,31 @@ public class JobListPanel extends JPanel {
 		// Top Action Bar
 		JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
 
-		JButton triggerNowBtn = new JButton("Evaluate Now");
+		newPostBtn = new JButton("New Post");
+		newPostBtn.addActionListener(e -> createNewPost());
+		toolbar.add(newPostBtn);
+
+		copyPostBtn = new JButton("Copy Post");
+		copyPostBtn.addActionListener(e -> copySelectedPost());
+		toolbar.add(copyPostBtn);
+
+		editBtn = new JButton("Edit Post");
+		editBtn.addActionListener(e -> {
+			int row = jobTable.getSelectedRow();
+			if (row >= 0 && row < currentJobs.size()) {
+				ScheduledJob job = currentJobs.get(row);
+				if (job.getStatus() != ScheduledJob.JobStatus.COMPLETED) {
+					this.editCallback.onEditJob(job);
+				}
+			}
+		});
+		toolbar.add(editBtn);
+
+		pauseBtn = new JButton("Pause / Resume");
+		pauseBtn.addActionListener(e -> togglePauseSelectedJob());
+		toolbar.add(pauseBtn);
+
+		triggerNowBtn = new JButton("Evaluate Now");
 		triggerNowBtn.addActionListener(e -> {
 			int row = jobTable.getSelectedRow();
 			if (row >= 0 && row < currentJobs.size()) {
@@ -94,20 +131,7 @@ public class JobListPanel extends JPanel {
 		});
 		toolbar.add(triggerNowBtn);
 
-		JButton pauseBtn = new JButton("Pause / Resume");
-		pauseBtn.addActionListener(e -> togglePauseSelectedJob());
-		toolbar.add(pauseBtn);
-
-		JButton editBtn = new JButton("Edit Post");
-		editBtn.addActionListener(e -> {
-			int row = jobTable.getSelectedRow();
-			if (row >= 0 && row < currentJobs.size()) {
-				this.editCallback.onEditJob(currentJobs.get(row));
-			}
-		});
-		toolbar.add(editBtn);
-
-		JButton deleteBtn = new JButton("Delete");
+		deleteBtn = new JButton("Delete");
 		deleteBtn.addActionListener(e -> {
 			int row = jobTable.getSelectedRow();
 			if (row >= 0 && row < currentJobs.size()) {
@@ -220,6 +244,13 @@ public class JobListPanel extends JPanel {
 		int row = jobTable.getSelectedRow();
 		if (row >= 0 && row < currentJobs.size()) {
 			ScheduledJob job = currentJobs.get(row);
+			copyPostBtn.setEnabled(true);
+			deleteBtn.setEnabled(true);
+
+			boolean isCompleted = (job.getStatus() == ScheduledJob.JobStatus.COMPLETED);
+			editBtn.setEnabled(!isCompleted);
+			pauseBtn.setEnabled(!isCompleted);
+
 			pollLogPanel.displayJobHistory(job);
 
 			StringBuilder sb = new StringBuilder();
@@ -238,8 +269,55 @@ public class JobListPanel extends JPanel {
 			conditionSummaryArea.setText(sb.toString());
 			conditionSummaryArea.setCaretPosition(0);
 		} else {
+			copyPostBtn.setEnabled(false);
+			editBtn.setEnabled(false);
+			pauseBtn.setEnabled(false);
+			deleteBtn.setEnabled(false);
 			pollLogPanel.displayJobHistory(null);
 			conditionSummaryArea.setText("Select a scheduled job above to view condition details and poll logs.");
+		}
+	}
+
+	private void createNewPost() {
+		String defaultProfileId = schedulerEngine.getProfiles().isEmpty() ? "" : schedulerEngine.getProfiles().iterator().next().getId();
+		ScheduledJob newDraft = ScheduledJob.builder()
+				.id(UUID.randomUUID().toString())
+				.name("Scheduled Post #" + (schedulerEngine.getJobs().size() + 1))
+				.forumProfileId(defaultProfileId)
+				.threadUrl("")
+				.bbCodeContent("")
+				.priority(JobPriority.NORMAL)
+				.customPollIntervalSeconds(30)
+				.conditions(ScheduledJob.defaultConditions())
+				.status(ScheduledJob.JobStatus.DRAFT)
+				.currentStatusReason("Draft created")
+				.createdAt(Instant.now())
+				.build();
+
+		schedulerEngine.addOrUpdateJob(newDraft);
+		refreshTable();
+		this.editCallback.onEditJob(newDraft);
+	}
+
+	private void copySelectedPost() {
+		int row = jobTable.getSelectedRow();
+		if (row >= 0 && row < currentJobs.size()) {
+			ScheduledJob original = currentJobs.get(row);
+			ScheduledJob copyDraft = original.toBuilder()
+					.id(UUID.randomUUID().toString())
+					.name(original.getName() + " (Copy)")
+					.status(ScheduledJob.JobStatus.DRAFT)
+					.currentStatusReason("Draft created from " + original.getName())
+					.createdAt(Instant.now())
+					.completedAt(null)
+					.lastPollTime(null)
+					.lastPollStatus(null)
+					.pollHistory(Collections.emptyList())
+					.build();
+
+			schedulerEngine.addOrUpdateJob(copyDraft);
+			refreshTable();
+			this.editCallback.onEditJob(copyDraft);
 		}
 	}
 
@@ -247,6 +325,9 @@ public class JobListPanel extends JPanel {
 		int row = jobTable.getSelectedRow();
 		if (row >= 0 && row < currentJobs.size()) {
 			ScheduledJob job = currentJobs.get(row);
+			if (job.getStatus() == ScheduledJob.JobStatus.COMPLETED) {
+				return;
+			}
 			ScheduledJob.JobStatus newStatus = (job.getStatus() == ScheduledJob.JobStatus.PAUSED)
 					? ScheduledJob.JobStatus.SCHEDULED
 							: ScheduledJob.JobStatus.PAUSED;

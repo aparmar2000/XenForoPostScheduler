@@ -108,7 +108,7 @@ public abstract class PostCondition {
 
 	public void requirePageLoadedOrFail(@NotNull ScrapedThreadData threadData, int pageNumber) {
 		if (!threadData.hasPage(pageNumber)) {
-			failWithPageRequest("Requires page %d to be loaded", pageNumber);
+			failWithPageRequest(String.format("Requires page %d to be loaded", pageNumber), pageNumber);
 		}
 	}
 
