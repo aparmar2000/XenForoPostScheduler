@@ -5,16 +5,22 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mockStatic;
 
 import java.awt.GraphicsEnvironment;
 import java.time.Instant;
 import java.util.UUID;
 
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 import aparmar2000.xenforoposter.extension.ExtensionManager;
 import aparmar2000.xenforoposter.model.ScheduledJob;
@@ -30,14 +36,29 @@ class PostComposerFlowTest {
 	private XenForoWebClient webClient;
 	private GeneralSettings generalSettings;
 	private BbCodePreviewRenderer previewRenderer;
+	private MockedStatic<JOptionPane> mockedJOptionPane;
 
 	@BeforeEach
 	void setUp() {
+		mockedJOptionPane = mockStatic(JOptionPane.class);
+		mockedJOptionPane.when(() -> JOptionPane.showMessageDialog(any(), any())).thenAnswer(invocation -> null);
+		mockedJOptionPane.when(() -> JOptionPane.showMessageDialog(any(), any(), any(), anyInt())).thenAnswer(invocation -> null);
+		mockedJOptionPane.when(() -> JOptionPane.showMessageDialog(any(), any(), any(), anyInt(), any())).thenAnswer(invocation -> null);
+		mockedJOptionPane.when(() -> JOptionPane.showConfirmDialog(any(), any(), any(), anyInt())).thenReturn(JOptionPane.YES_OPTION);
+		mockedJOptionPane.when(() -> JOptionPane.showConfirmDialog(any(), any(), any(), anyInt(), anyInt())).thenReturn(JOptionPane.YES_OPTION);
+
 		engine = UiPreviewHelper.createPreviewSchedulerEngine();
 		extensionManager = UiPreviewHelper.createPreviewExtensionManager();
 		webClient = UiPreviewHelper.createPreviewWebClient();
 		generalSettings = UiPreviewHelper.createPreviewGeneralSettings();
 		previewRenderer = UiPreviewHelper.createPreviewBbCodePreviewRenderer();
+	}
+
+	@AfterEach
+	void tearDown() {
+		if (mockedJOptionPane != null) {
+			mockedJOptionPane.close();
+		}
 	}
 
 	@Test
