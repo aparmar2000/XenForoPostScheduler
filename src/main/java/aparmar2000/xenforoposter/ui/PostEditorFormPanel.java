@@ -31,23 +31,36 @@ import aparmar2000.xenforoposter.model.ForumProfile;
 import aparmar2000.xenforoposter.model.JobPriority;
 import aparmar2000.xenforoposter.model.ScheduledJob;
 import aparmar2000.xenforoposter.scheduler.SchedulerEngine;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 public class PostEditorFormPanel extends JPanel {
 	private static final long serialVersionUID = -4342831032879819425L;
 
 	private final SchedulerEngine schedulerEngine;
 
-	private final JTextField jobNameField;
-	private final JComboBox<ProfileItem> profileComboBox;
-	private final JTextField threadUrlField;
-	private final JComboBox<JobPriority> priorityComboBox;
-	private final JSpinner pollIntervalSpinner;
+	@Getter(AccessLevel.PACKAGE) private final JTextField jobNameField;
+	@Getter(AccessLevel.PACKAGE) private final JComboBox<ProfileItem> profileComboBox;
+	@Getter(AccessLevel.PACKAGE) private final JTextField threadUrlField;
+	@Getter(AccessLevel.PACKAGE) private final JComboBox<JobPriority> priorityComboBox;
+	@Getter(AccessLevel.PACKAGE) private final JSpinner pollIntervalSpinner;
 
 	private final JTabbedPane tabbedPane;
 	private final ConditionBuilderPanel conditionBuilder;
 	private final BbCodeEditorPanel bbCodeEditor;
 
-	private String editingJobId = null;
+	@Getter(AccessLevel.PACKAGE) private final JButton cancelBtn;
+	@Getter(AccessLevel.PACKAGE) private final JButton saveDraftBtn;
+	@Getter(AccessLevel.PACKAGE) private final JButton scheduleBtn;
+
+	@Getter(AccessLevel.PACKAGE) private String editingJobId = null;
+	private PostEditorListener editorListener;
+
+	public interface PostEditorListener {
+		void onPostScheduled(@NotNull ScheduledJob job);
+		default void onPostDraftSaved(@NotNull ScheduledJob job) {}
+		default void onEditorCancelled() {}
+	}
 
 	/**
 	 * Design-time only constructor for Eclipse WindowBuilder preview.
@@ -133,16 +146,20 @@ public class PostEditorFormPanel extends JPanel {
 		// Bottom Action Bar
 		JPanel actionBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
 
+		cancelBtn = new JButton("Cancel");
+		cancelBtn.addActionListener(e -> {
+			resetForm();
+			if (editorListener != null) {
+				editorListener.onEditorCancelled();
+			}
+		});
+		actionBar.add(cancelBtn);
 
-		JButton clearBtn = new JButton("Clear / New Job");
-		clearBtn.addActionListener(e -> resetForm());
-		actionBar.add(clearBtn);
-
-		JButton saveDraftBtn = new JButton("Save as Draft");
+		saveDraftBtn = new JButton("Save as Draft");
 		saveDraftBtn.addActionListener(e -> saveJob(ScheduledJob.JobStatus.DRAFT));
 		actionBar.add(saveDraftBtn);
 
-		JButton scheduleBtn = new JButton("Schedule Post");
+		scheduleBtn = new JButton("Schedule Post");
 		scheduleBtn.setFont(scheduleBtn.getFont().deriveFont(Font.BOLD));
 		scheduleBtn.addActionListener(e -> saveJob(ScheduledJob.JobStatus.SCHEDULED));
 		actionBar.add(scheduleBtn);
@@ -159,6 +176,14 @@ public class PostEditorFormPanel extends JPanel {
 			@Override
 			public void onJobUpdated(@NotNull ScheduledJob job) {}
 		});
+	}
+
+	public void setEditorListener(PostEditorListener editorListener) {
+		this.editorListener = editorListener;
+	}
+
+	public void setListener(PostEditorListener editorListener) {
+		this.editorListener = editorListener;
 	}
 
 	public void refreshProfileDropdown() {
@@ -178,6 +203,11 @@ public class PostEditorFormPanel extends JPanel {
 	}
 
 	public void loadJobForEditing(@NotNull ScheduledJob job) {
+		if (job.getStatus() == ScheduledJob.JobStatus.COMPLETED) {
+			JOptionPane.showMessageDialog(this, "Completed posts cannot be edited.", "Cannot Edit Post", JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+
 		this.editingJobId = job.getId();
 		jobNameField.setText(job.getName());
 		threadUrlField.setText(job.getThreadUrl());
@@ -222,14 +252,16 @@ public class PostEditorFormPanel extends JPanel {
 			return;
 		}
 
-		if (threadUrl.isEmpty() || !threadUrl.toLowerCase().startsWith("http")) {
-			JOptionPane.showMessageDialog(this, "Please enter a valid Thread URL (e.g. https://forum.example.com/threads/12345/).", "Validation Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
+		if (targetStatus == ScheduledJob.JobStatus.SCHEDULED) {
+			if (threadUrl.isEmpty() || !threadUrl.toLowerCase().startsWith("http")) {
+				JOptionPane.showMessageDialog(this, "Please enter a valid Thread URL (e.g. https://forum.example.com/threads/12345/).", "Validation Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
 
-		if (bbCode.isEmpty()) {
-			JOptionPane.showMessageDialog(this, "Post BBCode content cannot be empty.", "Validation Error", JOptionPane.ERROR_MESSAGE);
-			return;
+			if (bbCode.isEmpty()) {
+				JOptionPane.showMessageDialog(this, "Post BBCode content cannot be empty.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
 		}
 
 		JobPriority priority = (JobPriority) priorityComboBox.getSelectedItem();
@@ -260,7 +292,20 @@ public class PostEditorFormPanel extends JPanel {
 				.build();
 
 		schedulerEngine.addOrUpdateJob(job);
-		JOptionPane.showMessageDialog(this, "Job successfully " + (targetStatus == ScheduledJob.JobStatus.DRAFT ? "saved as Draft" : "Scheduled") + "!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+		if (targetStatus == ScheduledJob.JobStatus.SCHEDULED) {
+			JOptionPane.showMessageDialog(this, "Job successfully Scheduled!", "Success", JOptionPane.INFORMATION_MESSAGE);
+			resetForm();
+			if (editorListener != null) {
+				editorListener.onPostScheduled(job);
+			}
+		} else {
+			this.editingJobId = job.getId();
+			JOptionPane.showMessageDialog(this, "Job successfully saved as Draft!", "Success", JOptionPane.INFORMATION_MESSAGE);
+			if (editorListener != null) {
+				editorListener.onPostDraftSaved(job);
+			}
+		}
 	}
 
 	public JTabbedPane getTabbedPane() {
