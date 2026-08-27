@@ -8,6 +8,7 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -28,6 +29,10 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
 import aparmar2000.xenforoposter.extension.condition.ConditionProvider;
+import aparmar2000.xenforoposter.extension.hook.AbstractHookEvent;
+import aparmar2000.xenforoposter.extension.hook.HookExecutionException;
+import aparmar2000.xenforoposter.extension.hook.HookPhase;
+import aparmar2000.xenforoposter.extension.hook.RegisteredHook;
 import aparmar2000.xenforoposter.extension.toolbar.BbCodeToolbarItem;
 import lombok.AccessLevel;
 import lombok.NonNull;
@@ -184,6 +189,55 @@ public class ExtensionManager {
 			}
 		}
 		return providers;
+	}
+
+	public List<RegisteredHook<?,?>> getActiveHooks() {
+		List<RegisteredHook<?,?>> hooks = new ArrayList<>();
+		for (ExtensionHolder holder : extensions.values()) {
+			if (holder.isEnabled()) {
+				hooks.addAll(holder.getContext().getRegisteredHooks());
+			}
+		}
+		
+		Collections.sort(hooks);
+		return hooks;
+	}
+
+	@SuppressWarnings("unchecked")
+	public <H extends AbstractHookEvent<S>, S> List<RegisteredHook<H,S>> getActiveHooksForEvent(@NonNull H event) {
+		List<RegisteredHook<H,S>> matching = new ArrayList<>();
+		for (RegisteredHook<?,?> hook : getActiveHooks()) {
+			if (hook.appliesToEvent(event)) {
+				matching.add((RegisteredHook<H, S>) hook);
+			}
+		}
+		return matching;
+	}
+
+	@NonNull
+	public <H extends AbstractHookEvent<S>, S> H fireHookEvent(@NonNull H event) {
+		List<RegisteredHook<H,S>> hooks = getActiveHooksForEvent(event);
+		for (RegisteredHook<H,S> hook : hooks) {
+			S snapshot = event.createSnapshot();
+			
+			try {
+				hook.execute(event);
+			} catch (Throwable t) {
+				log.error("Error executing hook {} in extension {}", hook.getMethodName(), hook.getExtensionId(), t);
+				if (event.getPhase() == HookPhase.POST) {
+					throw new HookExecutionException(
+							hook.getExtensionId(),
+							hook.getMethodName(),
+							"Hook " + hook.getMethodName() + " in extension " + hook.getExtensionId()
+									+ " threw exception during POST phase: " + t.getMessage(),
+							t);
+				} else {
+					// In PREVIEW, revert event to clean snapshot
+					event.restoreSnapshot(snapshot);
+				}
+			}
+		}
+		return event;
 	}
 
 	public void addChangeListener(@NonNull ExtensionChangeListener listener) {

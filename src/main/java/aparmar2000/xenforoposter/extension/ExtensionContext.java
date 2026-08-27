@@ -8,6 +8,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import aparmar2000.xenforoposter.extension.condition.ConditionProvider;
+import aparmar2000.xenforoposter.extension.hook.AbstractHookEvent;
+import aparmar2000.xenforoposter.extension.hook.HookHandler;
+import aparmar2000.xenforoposter.extension.hook.HookPhase;
+import aparmar2000.xenforoposter.extension.hook.HookPriority;
+import aparmar2000.xenforoposter.extension.hook.RegisteredHook;
 import aparmar2000.xenforoposter.extension.toolbar.BbCodeToolbarItem;
 import aparmar2000.xenforoposter.settings.defs.SettingDefinition;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinition;
@@ -36,6 +41,20 @@ public interface ExtensionContext {
 	boolean unregisterHtmlTag(@NotNull String tag);
 
 	@NotNull Path getDataDirectory();
+	@NotNull String getExtensionId();
+
+	<H extends AbstractHookEvent<S>, S> void registerHook(@NotNull RegisteredHook<H, S> hook);
+	<H extends AbstractHookEvent<S>, S> void registerHook(
+			@NotNull Class<H> eventClass,
+			@NotNull HookHandler<H, S> handler,
+			@NotNull HookPriority priority,
+			@Nullable String hookName,
+			@Nullable HookPhase... phases);
+	<H extends AbstractHookEvent<S>, S> void registerHook(
+			@NotNull Class<H> eventClass,
+			@NotNull HookHandler<H, S> handler);
+	void registerAnnotatedHooks(@NotNull Object extensionInstance);
+	@NotNull List<RegisteredHook<?,?>> getRegisteredHooks();
 
 	void saveSettings();
 	void loadSettings();

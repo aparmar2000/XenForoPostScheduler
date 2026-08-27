@@ -15,13 +15,20 @@ public class BbCodePreviewRenderer {
 	private static final String PREVIEW_LIGHT_CSS_PATH = "bbcode/preview_light.css";
 
 	private final BbCodeAstParser parser;
+	private final BbCodeProcessor processor;
 	private final String templateHtml;
 	private final String darkCss;
 	private final String lightCss;
 
-	@Inject
 	public BbCodePreviewRenderer(@NonNull BbCodeAstParser parser) {
+		this(parser, null);
+	}
+
+	@Inject
+	public BbCodePreviewRenderer(@NonNull BbCodeAstParser parser,
+			@Nullable BbCodeProcessor processor) {
 		this.parser = parser;
+		this.processor = processor;
 		this.templateHtml = InternalResourceLoader.tryGetInternalResourceAsStringSilent(PREVIEW_TEMPLATE_PATH)
 				.orElse("<!DOCTYPE html>\n<html>\n<head>\n<style>\n{{CSS_STYLES}}\n</style>\n</head>\n<body>\n{{CONTENT}}\n</body>\n</html>");
 		this.darkCss = InternalResourceLoader.tryGetInternalResourceAsStringSilent(PREVIEW_DARK_CSS_PATH)
@@ -42,6 +49,9 @@ public class BbCodePreviewRenderer {
 
 	@NotNull
 	public String convertBbCodeToHtml(@NotNull String bbCode) {
+		if (processor != null) {
+			return processor.processToHtmlStringForPreview(bbCode);
+		}
 		String text = bbCode.replace("\r\n", "\n").replace("\r", "\n");
 		BbCodeAst ast = parser.parseString(text);
 		return ast.mapToHtmlString();

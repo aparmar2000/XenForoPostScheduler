@@ -51,6 +51,7 @@ public class ExtensionHolder {
 		try {
 			Files.createDirectories(dataDirectory);
 			extension.initialize(context);
+			context.registerAnnotatedHooks(extension);
 			context.loadSettings();
 			if (enabled) {
 				extension.onEnable();

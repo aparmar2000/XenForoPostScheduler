@@ -26,6 +26,7 @@ import aparmar2000.xenforoposter.settings.SettingsHolder;
 import aparmar2000.xenforoposter.syntax.DefaultTagDefinitions;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeAstParser;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodePreviewRenderer;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeProcessor;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTagDefinitionRegistry;
 import aparmar2000.xenforoposter.syntax.bbcode.BbCodeTokenizer;
 import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinitionRegistry;
@@ -131,10 +132,20 @@ public class AppModule extends AbstractModule {
 
 	@Provides
 	@Singleton
+	public BbCodeProcessor provideBbCodeProcessor(
+			ExtensionManager extensionManager,
+			BbCodeTokenizer tokenizer,
+			BbCodeAstParser parser) {
+		return new BbCodeProcessor(extensionManager, tokenizer, parser);
+	}
+
+	@Provides
+	@Singleton
 	public SchedulerEngine provideSchedulerEngine(SafetyRateLimiter rateLimiter,
 			JobStorageService storageService,
-			XenForoWebClient webClient) {
-		return new SchedulerEngine(rateLimiter, storageService, webClient);
+			XenForoWebClient webClient,
+			BbCodeProcessor bbCodeProcessor) {
+		return new SchedulerEngine(rateLimiter, storageService, webClient, bbCodeProcessor);
 	}
 
 	@Provides
@@ -182,8 +193,9 @@ public class AppModule extends AbstractModule {
 
 	@Provides
 	@Singleton
-	public BbCodePreviewRenderer provideBbCodePreviewRenderer(BbCodeAstParser parser) {
-		return new BbCodePreviewRenderer(parser);
+	public BbCodePreviewRenderer provideBbCodePreviewRenderer(BbCodeAstParser parser,
+			BbCodeProcessor processor) {
+		return new BbCodePreviewRenderer(parser, processor);
 	}
 }
 

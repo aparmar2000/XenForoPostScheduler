@@ -1,8 +1,12 @@
 package aparmar2000.xenforoposter.extension;
 
+import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import org.jetbrains.annotations.NotNull;
@@ -13,6 +17,12 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 
 import aparmar2000.xenforoposter.extension.condition.ConditionProvider;
+import aparmar2000.xenforoposter.extension.hook.AbstractHookEvent;
+import aparmar2000.xenforoposter.extension.hook.Hook;
+import aparmar2000.xenforoposter.extension.hook.HookHandler;
+import aparmar2000.xenforoposter.extension.hook.HookPhase;
+import aparmar2000.xenforoposter.extension.hook.HookPriority;
+import aparmar2000.xenforoposter.extension.hook.RegisteredHook;
 import aparmar2000.xenforoposter.extension.toolbar.BbCodeToolbarItem;
 import aparmar2000.xenforoposter.settings.SettingsHolder;
 import aparmar2000.xenforoposter.settings.defs.SettingDefinition;
@@ -28,6 +38,8 @@ public class InternalExtensionContext implements ExtensionContext {
 	@Getter
 	private final Path dataDirectory;
 	@Getter
+	private final String extensionId;
+	@Getter
 	private final SettingsHolder settingsHolder;
 	private final BbCodeTagDefinitionRegistry bbCodeTagDefinitionRegistry;
 	private final HtmlTagDefinitionRegistry htmlTagDefinitionRegistry;
@@ -35,6 +47,7 @@ public class InternalExtensionContext implements ExtensionContext {
 	private final TagSource tagSource;
 	private final List<BbCodeToolbarItem> toolbarItems = new ArrayList<>();
 	private final List<ConditionProvider> conditionProviders = new ArrayList<>();
+	private final List<RegisteredHook<?,?>> registeredHooks = new ArrayList<>();
 
 	public interface Factory {
 		InternalExtensionContext create(@NonNull Path dataDirectory, @NonNull String extensionId);
@@ -47,6 +60,7 @@ public class InternalExtensionContext implements ExtensionContext {
 			@NonNull BbCodeTagDefinitionRegistry bbCodeTagDefinitionRegistry,
 			@NonNull HtmlTagDefinitionRegistry htmlTagDefinitionRegistry) {
 		this.dataDirectory = dataDirectory;
+		this.extensionId = extensionId;
 		this.settingsHolder = settingsHolderFactory.create(dataDirectory.resolve("settings.json"));
 		this.bbCodeTagDefinitionRegistry = bbCodeTagDefinitionRegistry;
 		this.htmlTagDefinitionRegistry = htmlTagDefinitionRegistry;
@@ -151,5 +165,83 @@ public class InternalExtensionContext implements ExtensionContext {
 	@Override
 	public boolean unregisterHtmlTag(@NonNull String tag) {
 		return htmlTagDefinitionRegistry.unregister(tagSource, tag);
+	}
+
+	@Override
+	public <H extends AbstractHookEvent<S>, S> void registerHook(@NonNull RegisteredHook<H,S> hook) {
+		registeredHooks.add(hook);
+	}
+
+	@Override
+	public <H extends AbstractHookEvent<S>, S> void registerHook(
+			@NonNull Class<H> eventClass,
+			@NonNull HookHandler<H,S> handler,
+			@NonNull HookPriority priority,
+			@Nullable String hookName,
+			@Nullable HookPhase... phases) {
+		Set<HookPhase> phaseSet = null;
+		if (phases != null && phases.length > 0) {
+			phaseSet = EnumSet.copyOf(Arrays.asList(phases));
+		}
+		registeredHooks.add(RegisteredHook.<H,S>builder()
+				.extensionId(extensionId)
+				.methodName(hookName != null ? hookName : eventClass.getSimpleName() + "Handler")
+				.eventType(eventClass)
+				.priority(priority)
+				.phases(phaseSet)
+				.handler(handler)
+				.build());
+	}
+
+	@Override
+	public <H extends AbstractHookEvent<S>, S> void registerHook(
+			@NonNull Class<H> eventClass,
+			@NonNull HookHandler<H,S> handler) {
+		registerHook(eventClass, handler, HookPriority.NORMAL, null);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public void registerAnnotatedHooks(@NonNull Object extensionInstance) {
+		Class<?> clazz = extensionInstance.getClass();
+		for (Method method : clazz.getDeclaredMethods()) {
+			Hook hookAnn = method.getAnnotation(Hook.class);
+			if (hookAnn == null) {
+				continue;
+			}
+			
+			Class<?>[] paramTypes = method.getParameterTypes();
+			if (paramTypes.length != 1 || !AbstractHookEvent.class.isAssignableFrom(paramTypes[0])) {
+				continue;
+			}
+
+			method.setAccessible(true);
+			@SuppressWarnings("rawtypes")
+			Class<? extends AbstractHookEvent> eventType = (Class<? extends AbstractHookEvent>) paramTypes[0];
+
+			HookPhase[] phases = new HookPhase[0];
+			if (hookAnn.phases().length > 0) {
+				phases = hookAnn.phases().clone();
+			} else {
+				continue;
+			}
+
+			bindAndRegisterHook(extensionInstance, eventType, method, hookAnn.priority(), phases);
+		}
+	}
+	
+	protected <H extends AbstractHookEvent<S>, S> void bindAndRegisterHook(
+			Object extensionInstance, Class<H> eventType, Method method, 
+			HookPriority priority, HookPhase[] phases) {
+		HookHandler<H,S> handler = event -> {
+			method.invoke(extensionInstance, event);
+		};
+
+		registerHook(eventType, handler, priority, method.getName(), phases);
+	}
+
+	@Override
+	public @NotNull ImmutableList<RegisteredHook<?,?>> getRegisteredHooks() {
+		return ImmutableList.copyOf(registeredHooks);
 	}
 }

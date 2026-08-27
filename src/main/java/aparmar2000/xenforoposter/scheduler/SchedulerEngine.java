@@ -28,6 +28,7 @@ import aparmar2000.xenforoposter.model.conditions.ConditionType;
 import aparmar2000.xenforoposter.model.conditions.EvaluationContext;
 import aparmar2000.xenforoposter.model.conditions.PostCondition;
 import aparmar2000.xenforoposter.security.SafetyRateLimiter;
+import aparmar2000.xenforoposter.syntax.bbcode.BbCodeProcessor;
 import aparmar2000.xenforoposter.web.XenForoWebClient;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +40,7 @@ public class SchedulerEngine {
 	@Getter
 	private final JobStorageService storageService;
 	private final XenForoWebClient webClient;
+	private final BbCodeProcessor bbCodeProcessor;
 
 	private final List<ScheduledJob> jobs = new CopyOnWriteArrayList<>();
 	private final Map<String, ForumProfile> profiles = new ConcurrentHashMap<>();
@@ -55,13 +57,21 @@ public class SchedulerEngine {
 		void onJobUpdated(@NotNull ScheduledJob job);
 	}
 
-	@Inject
 	public SchedulerEngine(@NotNull SafetyRateLimiter rateLimiter,
 			@NotNull JobStorageService storageService,
 			@NotNull XenForoWebClient webClient) {
+		this(rateLimiter, storageService, webClient, null);
+	}
+
+	@Inject
+	public SchedulerEngine(@NotNull SafetyRateLimiter rateLimiter,
+			@NotNull JobStorageService storageService,
+			@NotNull XenForoWebClient webClient,
+			@Nullable BbCodeProcessor bbCodeProcessor) {
 		this.rateLimiter = rateLimiter;
 		this.storageService = storageService;
 		this.webClient = webClient;
+		this.bbCodeProcessor = bbCodeProcessor;
 
 		// Load initial state
 		loadState();
@@ -370,7 +380,23 @@ public class SchedulerEngine {
 		// Dispatch post
 		updateJobStatus(job, ScheduledJob.JobStatus.POSTING, "Submitting reply to forum...", priorPollRecord);
 
-		String bbCode = job.getBbCodeContent();
+		String rawBbCode = job.getBbCodeContent();
+		String bbCode;
+		try {
+			bbCode = (bbCodeProcessor != null) ? bbCodeProcessor.processForPost(rawBbCode) : rawBbCode;
+		} catch (Exception e) {
+			log.error("Failed to process BBCode at post-time for job {}", job.getName(), e);
+			PollRecord hookFailRecord = PollRecord.builder()
+					.timestamp(Instant.now())
+					.pollType(PollRecord.PollType.POST_SUBMISSION)
+					.success(false)
+					.summary("Post cancelled: Extension hook failed during post processing")
+					.details(e.getMessage())
+					.build();
+			updateJobStatus(job, ScheduledJob.JobStatus.FAILED,
+					"Extension hook error during post processing: " + e.getMessage(), hookFailRecord);
+			return;
+		}
 
 		XenForoWebClient.PostSubmissionResult result = webClient.submitReply(profile, job.getThreadUrl(), bbCode);
 		if (result.isSuccessful()) {
