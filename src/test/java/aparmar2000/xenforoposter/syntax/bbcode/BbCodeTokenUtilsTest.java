@@ -1,6 +1,6 @@
 package aparmar2000.xenforoposter.syntax.bbcode;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.regex.Pattern;
