@@ -31,12 +31,12 @@ public class BbCodeTokenizer {
 	protected final BbCodeTagDefinitionRegistry tagDefinitionRegistry;
 	
 	@Data
-	protected static abstract class ParsedToken {
+	public static abstract class ParsedToken {
 		private final String rawString;
 	}
 
 	@EqualsAndHashCode(callSuper = true)
-	protected static class TextToken extends ParsedToken {
+	public static class TextToken extends ParsedToken {
 		public TextToken(String rawString) {
 			super(rawString);
 		}
@@ -44,7 +44,7 @@ public class BbCodeTokenizer {
 
 	@Data
 	@EqualsAndHashCode(callSuper = true)
-	protected static class TagToken extends ParsedToken {
+	public static class TagToken extends ParsedToken {
 		private final BbCodeTagDefinition tagDefinition;
 		private final boolean endingTag;
 		private final ImmutableMap<String, String> parameters;

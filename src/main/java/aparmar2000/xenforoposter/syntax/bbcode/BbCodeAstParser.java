@@ -32,6 +32,10 @@ public class BbCodeAstParser {
 	
 	public BbCodeAst parseString(String bbcodeString) {
 		val bbcodeTokens = tokenizer.tokenizeString(bbcodeString);
+		return parseTokens(bbcodeTokens);
+	}
+
+	public BbCodeAst parseTokens(List<ParsedToken> bbcodeTokens) {
 		final BbCodeAstNodeRoot rootNode = new BbCodeAstNodeRoot();
 		LinkedList<BbCodeAstBranchNode> currentNodeParents = new LinkedList<>();
 		currentNodeParents.add(rootNode);

@@ -1,21 +1,33 @@
 package aparmar2000.xenforoposter.syntax.html;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.escape.Escaper;
 import com.google.common.html.HtmlEscapers;
 
 import aparmar2000.xenforoposter.syntax.AbstractAst;
+import aparmar2000.xenforoposter.syntax.AstUtils;
 import aparmar2000.xenforoposter.syntax.html.HtmlTagDefinition.HtmlStringMapper.StringMappingException;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 import lombok.val;
 
 public class HtmlAst extends AbstractAst<HtmlAst.HtmlAstNodeRoot> {
 
     public HtmlAst(HtmlAstNodeRoot rootNode) {
         super(rootNode);
+    }
+
+    public HtmlAst clone() {
+        return new HtmlAst(rootNode.clone());
     }
 
     public static interface HtmlAstNode extends AbstractAst.AstNode<HtmlAstNode> {
@@ -128,5 +140,41 @@ public class HtmlAst extends AbstractAst<HtmlAst.HtmlAstNodeRoot> {
 			}
 		}
 		return innerHtmlStringBuilder.toString();
+	}
+
+	// --- Convenience AST Helper Methods
+
+	@NotNull
+	public List<HtmlAstNodeTag> findTags(@NonNull String tagName) {
+		return AstUtils.findHtmlTags(this, tagName);
+	}
+
+	@NotNull
+	public List<HtmlAstNodeText> findTextNodes() {
+		return AstUtils.findTextNodes(this);
+	}
+
+	@NotNull
+	public List<HtmlAstNodeText> findTextNodesContaining(@NonNull String substring) {
+		return AstUtils.findTextNodesContaining(this, substring);
+	}
+
+	@NotNull
+	public List<HtmlAstNodeText> findTextNodesMatching(@NonNull Pattern pattern) {
+		return AstUtils.findTextNodesMatching(this, pattern);
+	}
+
+	public void replaceText(@NotNull String target, @NonNull String replacement) {
+		AstUtils.replaceText(this, target, replacement);
+	}
+
+	public void replaceText(@NotNull Pattern pattern,
+			@NotNull Function<Matcher, String> replacer) {
+		AstUtils.replaceText(this, pattern, replacer);
+	}
+
+	public void replaceTags(@NotNull String tagName,
+			@NotNull Function<HtmlAstNodeTag, HtmlAstNode> replacer) {
+		AstUtils.replaceHtmlTags(this, tagName, replacer);
 	}
 }
